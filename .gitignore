@@ -1,0 +1,15 @@
+# Personal data — never commit this. It holds your real tasks, loops,
+# calendar hours, and name. Otto creates it fresh on first run.
+otto-data.json
+otto-data.*.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Just in case a stray backup/export ever lands here
+*.bak
+*.local.json

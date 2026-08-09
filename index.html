@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Otto</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+<header class="instrument">
+  <div class="instrument-top">
+    <div class="brand">
+      <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 178.96" role="img" aria-label="Otto"><path fill="currentColor" d="M12.65,114.59c0-4.41.4-8.66,1.14-12.65-6.83.49-12.11,3.91-13.04,9.45-.95,5.6-1.04,11.49,0,17.07,1.25,6.73,8.06,10.57,16.37,10.23-2.81-6.79-4.47-15.11-4.47-24.1Z"/><path fill="#ff3b1f" d="M90.27,0c-5.73-.08-10.4,4.54-10.44,10.33-.04,5.68,4.46,10.28,10.09,10.31,5.84.03,10.31-4.42,10.37-10.33C100.34,4.56,96,.08,90.27,0ZM94.12,8.81c-1.41,0-2.53-1.16-2.53-2.58,0-1.45,1.18-2.61,2.61-2.59,1.44.02,2.52,1.14,2.51,2.58-.02,1.48-1.14,2.59-2.6,2.59Z"/><path fill="#ff3b1f" d="M70.41,110.25c.03.15.04.31.04.47-.02,1.48-1.14,2.59-2.6,2.59-1.41,0-2.53-1.16-2.53-2.58,0-1.04.62-1.93,1.49-2.34-.95-.27-1.95-.42-2.98-.41-5.6.06-10.17,4.63-10.22,10.23-.05,5.59,4.8,10.5,10.34,10.46,5.71-.04,10.38-4.74,10.35-10.42-.02-3.23-1.54-6.11-3.9-7.99Z"/><path fill="#ff3b1f" d="M122.97,110.89c-.09,1.4-1.17,2.44-2.58,2.43-1.41,0-2.53-1.16-2.53-2.58,0-.94.5-1.75,1.24-2.2-.98-.32-2.04-.51-3.15-.52-5.73-.08-10.4,4.54-10.44,10.33-.04,5.68,4.46,10.28,10.09,10.31,5.84.03,10.31-4.42,10.37-10.33.03-2.96-1.11-5.58-3-7.44Z"/><path fill="currentColor" d="M117.74,46.86c-8.68-3.68-16.65-4.85-22.3-5.22,0-4.15.03-8.51,0-12.87-.03-3.52-1.71-5.55-4.56-5.64-2.99-.09-4.76,1.93-4.8,5.64-.05,4.36-.01,8.73-.01,12.48-8.04,1.89-15.62,2.95-22.7,5.45C30.71,58.28,13.16,90.5,16.68,122.42c3.43,31.12,33.77,48.43,54.78,54.02,6.69,1.78,23.19,5.16,42.19-1.14,1.83-.61,45.09-15.74,50.21-56.05,4.39-34.52-22.4-62.34-46.12-72.39ZM139.7,136.37c-5.54,7.93-13,12.32-22.87,12.27-3.79-.02-7.57-.02-11.36-.02v-1.93c0-2.58-2.09-4.67-4.67-4.67h-19.85c-2.58,0-4.67,2.09-4.67,4.67v1.93c-4.27,0-8.55,0-12.82,0-14.7-.03-26.67-11.22-28.05-25.9-1.11-11.74,1.75-21.79,11.5-29.15,4.46-3.37,9.54-5.28,15.15-5.3,4.74-.02,9.48-.04,14.22-.05v1.86c0,2.58,2.09,4.67,4.67,4.67h19.85c2.58,0,4.67-2.09,4.67-4.67v-1.87c4.29,0,8.58.03,12.87.05,13.35.08,25.4,12.15,26.34,26.11.53,7.82-.35,15.37-4.99,22.01Z"/><path fill="currentColor" d="M179.26,111.39c-.9-5.32-5.81-8.67-12.24-9.37.93,5.51,1.1,11.27.34,17.24-.92,7.28-3.1,13.73-6.04,19.43,8.26.28,16.69-3.56,17.94-10.24,1.04-5.58.95-11.47,0-17.07Z"/></svg>
+      <h1>Otto</h1>
+      <span class="today-date" id="todayDate"></span>
+    </div>
+    <button class="theme-btn" id="weeklyBtn" aria-label="Weekly review" title="Weekly review"></button>
+    <button class="theme-btn" id="fileBtn" aria-label="Link data file" title="Link otto-data.json"></button>
+    <button class="theme-btn" id="themeBtn" aria-label="Theme: system" title="Theme: system"></button>
+  </div>
+  <div class="gauge" id="gaugeWrap">
+    <div class="gauge-name" id="gaugeName" data-editname tabindex="0" role="button" aria-label="Set your name"></div>
+    <div class="gauge-divider"></div>
+    <button class="gauge-click" id="gaugeBtn" aria-label="Open capacity">
+      <div class="gauge-read">
+        <span class="gauge-status" id="gaugeStatus">—</span>
+        <span class="gauge-sub" id="gaugeSub">0 / 0 pts</span>
+      </div>
+      <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill"></div></div>
+    </button>
+  </div>
+</header>
+
+<nav class="views" role="tablist">
+  <button role="tab" aria-selected="true" data-view="today">Today<span class="count" id="c-today"></span></button>
+  <button role="tab" aria-selected="false" data-view="week">This week<span class="count" id="c-week"></span></button>
+  <button role="tab" aria-selected="false" data-view="later">Later<span class="count" id="c-later"></span></button>
+  <button role="tab" aria-selected="false" data-view="loops">Loops<span class="count" id="c-loops"></span></button>
+  <button role="tab" aria-selected="false" data-view="teams">Teams<span class="count" id="c-teams"></span></button>
+  <button role="tab" aria-selected="false" data-view="review">Review<span class="count" id="c-review"></span></button>
+  <button role="tab" aria-selected="false" data-view="archive">Archive<span class="count" id="c-archive"></span></button>
+  <button role="tab" aria-selected="false" data-view="rejected">Rejected<span class="count" id="c-rejected"></span></button>
+</nav>
+<div id="reconnectBar" class="reconnect-bar" hidden>
+  <span>Reload dropped the file permission — your data is in the linked file, not lost.</span>
+  <button id="reconnectBtn">Reconnect &amp; load</button>
+</div>
+<div id="welcomeBar" class="welcome-bar" hidden>
+  <span>Nothing here yet. Link <code>otto-data.json</code> to pull in scanned tasks and keep this synced — or just start adding things below.</span>
+  <div class="welcome-actions">
+    <button id="welcomeLinkBtn">Link a data file</button>
+    <button id="welcomeDismissBtn">I'll do this later</button>
+  </div>
+</div>
+</div>
+
+<main>
+  <!-- TODAY -->
+  <section class="view active" id="view-today">
+    <div class="view-head">
+      <div><h2>Today</h2><p>What has your attention right now.</p></div>
+    </div>
+    <div class="today-cap" id="today-cap"></div>
+    <div class="adder" id="adder-task">
+      <input class="title" id="t-title" placeholder="Add a task, bug, or project…" autocomplete="off">
+      <select id="t-type"><option value="task">task</option><option value="bug">bug</option><option value="project">project</option></select>
+      <input class="who" id="t-area" list="areas" placeholder="area" autocomplete="off">
+      <datalist id="areas">
+        <option>Site Redesign</option><option>Milo Core</option><option>Animation Panels</option><option>Bentos</option><option>Stardust</option>
+      </datalist>
+      <select id="t-eff"><option value="1">S</option><option value="2" selected>M</option><option value="3">L</option></select>
+      <select id="t-pri"><option value="low">low</option><option value="med" selected>med</option><option value="high">high</option></select>
+      <select id="t-bucket"><option value="today" selected>today</option><option value="mon">mon</option><option value="tue">tue</option><option value="wed">wed</option><option value="thu">thu</option><option value="fri">fri</option><option value="later">later</option></select>
+      <button class="add-btn" id="t-add">Add</button>
+      <div class="ctx-row" id="t-context">
+        <input id="t-link" class="ctx-field" placeholder="https://…  source link (PR, thread, doc)" inputmode="url" autocomplete="off">
+        <input id="t-note" class="ctx-field" placeholder="TLDR — one line of context" autocomplete="off">
+      </div>
+    </div>
+    <div id="today-list"></div>
+  </section>
+
+  <!-- WEEK -->
+  <section class="view" id="view-week">
+    <div class="view-head">
+      <div><h2>This week</h2><p>The week split by day. Move a card with its day picker.</p></div>
+    </div>
+    <div class="week" id="week-grid"></div>
+  </section>
+
+  <!-- LATER -->
+  <section class="view" id="view-later">
+    <div class="view-head">
+      <div><h2>Later</h2><p>Unscheduled backlog. Scanned tasks land here — pull them into Today or a day when you're ready.</p></div>
+    </div>
+    <div id="later-list"></div>
+  </section>
+
+  <!-- LOOPS -->
+  <section class="view" id="view-loops">
+    <div class="view-head">
+      <div><h2>Loops</h2><p>Open conversations that need an action. Log them here so they don't slip.</p></div>
+    </div>
+    <div class="adder" id="adder-loop">
+      <select id="l-src"><option value="slack">slack</option><option value="email">email</option><option value="other">other</option></select>
+      <input class="who" id="l-who" placeholder="who / channel" autocomplete="off">
+      <input class="title" id="l-summary" placeholder="What's the thread about?" autocomplete="off">
+      <select id="l-needs"><option value="reply">needs reply</option><option value="ticket">needs ticket</option><option value="meeting">needs meeting</option><option value="feedback">needs feedback</option><option value="review">needs review</option><option value="other">needs other</option></select>
+      <button class="add-btn" id="l-add">Add</button>
+      <div class="ctx-row" id="l-context">
+        <input id="l-link" class="ctx-field" placeholder="Link to the conversation (Slack thread / email) — optional" inputmode="url" autocomplete="off">
+      </div>
+    </div>
+    <div id="loops-list"></div>
+  </section>
+
+  <!-- TEAMS -->
+  <section class="view" id="view-teams">
+    <div class="view-head">
+      <div><h2>Teams</h2><p>Notes and recaps from recorded Teams meetings. Action items flow into Review as tasks and loops.</p></div>
+    </div>
+    <div id="meetings-list"></div>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="view" id="view-review">
+    <div class="view-head">
+      <div><h2>Review</h2><p>Items the scan staged. Approve to add them, or reject with a reason.</p></div>
+      <div class="review-controls">
+        <label class="review-toggle"><input type="checkbox" id="reviewModeChk"> Stage scans for review</label>
+        <button class="reset-btn" id="resetScanBtn">Reset scan history</button>
+      </div>
+    </div>
+    <div id="review-list"></div>
+  </section>
+
+  <!-- ARCHIVE -->
+  <section class="view" id="view-archive">
+    <div class="view-head">
+      <div><h2>Archive</h2><p>Everything that's left the active board &mdash; completed, reassigned, or dropped. Nothing here is deleted; restore anything that comes back around.</p></div>
+    </div>
+    <div id="archive-list"></div>
+  </section>
+
+  <!-- REJECTED -->
+  <section class="view" id="view-rejected">
+    <div class="view-head">
+      <div><h2>Rejected</h2><p>Nothing is deleted — rejected items live here. Restore any you want to reassess.</p></div>
+    </div>
+    <div id="rejected-list"></div>
+  </section>
+</main>
+
+<p class="statline" id="statline"></p>
+<p class="footnote" id="footnote"></p>
+
+<!-- capacity panel -->
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" aria-hidden="true" aria-label="Capacity">
+  <div class="panel-head">
+    <h2>Capacity</h2>
+    <button class="close-x" id="panelClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="panel-body">
+    <div class="load-detail">
+      <div class="big"><span id="d-committed">0</span><span>h / <span id="d-budget">8</span>h today</span></div>
+      <div class="label" id="d-label">—</div>
+      <div class="breakdown" id="d-breakdown">—</div>
+    </div>
+
+    <div class="field">
+      <label for="mtgToday">Meeting hours today</label>
+      <input type="number" id="mtgToday" min="0" max="24" step="0.5">
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px;font-family:var(--mono)">Auto-filled by the scan from your calendar; adjust by hand any time. Also editable per day in This week.</div>
+    </div>
+
+    <div class="field">
+      <label for="dailyHours">Hours in a workday</label>
+      <input type="number" id="dailyHours" min="1" max="24" step="0.5">
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px;font-family:var(--mono)">Your daily ceiling. Task sizes count as S = 1h · M = 2h · L = 4h.</div>
+    </div>
+
+    <div class="field">
+      <label>Status read</label>
+      <div class="seg" id="statusSeg">
+        <button data-s="auto" aria-pressed="true">Auto</button>
+        <button data-s="room">Room for more</button>
+        <button data-s="ok">About right</button>
+        <button data-s="full">At capacity</button>
+        <button data-s="over">Overloaded</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Copy a status line</label>
+      <textarea class="blurb" id="blurb" rows="4"></textarea>
+      <button class="copy-btn" id="copyBlurb">Copy to clipboard</button>
+    </div>
+  </div>
+</aside>
+
+<aside class="panel wide" id="weeklyPanel" aria-hidden="true" aria-label="Weekly review">
+  <div class="panel-head">
+    <h2>Weekly review</h2>
+    <button class="close-x" id="weeklyClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="panel-body" id="weekly-body"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
