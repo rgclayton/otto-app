@@ -4,16 +4,9 @@ Otto is a personal work tracker: a small web app paired with a Cowork skill
 (`otto-scan`) that scans Slack, email, and Teams and feeds it new tasks and
 loops. This guide gets a coworker from zero to a running, personal copy.
 
-**Important:** this is a *personal* copy, not a shared one. Your coworker's
-tasks, loops, and calendar data are their own — nothing here connects back to
+**Important:** this is a *personal* copy, not a shared one. Tasks, loops, and calendar data are pulling from your own credentials via Cowork — nothing here connects back to
 your Otto or your data. Each person runs their own independent instance, using
 the same hosted app.
-
----
-
-**⚠️ TODO before sending this to anyone: fill in the real Otto URL below.**
-It's currently a placeholder — a coworker following this guide as-is will
-get stuck on Step 1 without it.
 
 ---
 
@@ -22,7 +15,7 @@ get stuck on Step 1 without it.
 - **Google Chrome or Microsoft Edge** (required — Otto uses the File System Access API, which only these browsers support)
 - **Claude Cowork** access, with **Slack** and **Microsoft 365** connectors available
 - One file from you: **`otto-scan/SKILL.md`**
-- The Otto URL: **[insert your GitHub Pages URL here — e.g. https://rgclayton.github.io/otto-app/]**
+- The Otto URL:  https://rgclayton.github.io/otto-app/
 
 You do **not** need to send them the app itself, and they don't need Python or
 a local server — the app is hosted, so opening the link is the whole setup for

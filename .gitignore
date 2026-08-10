@@ -3,6 +3,11 @@
 otto-data.json
 otto-data.*.json
 
+# Personal Claude Code context — not project documentation, just notes
+# for continuity between chat and the IDE. CLAUDE.md (committed) has the
+# shared, public-safe project facts; this has the rest.
+CLAUDE.local.md
+
 # OS / editor noise
 .DS_Store
 Thumbs.db
