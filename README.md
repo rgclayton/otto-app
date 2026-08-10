@@ -1,10 +1,6 @@
 # Otto
 
-**⚠️ TODO: add the live GitHub Pages URL here once Pages is turned on** —
-`https://rgclayton.github.io/otto-app/` (or whatever it ends up being). This
-is the link you'll actually hand to coworkers, so it belongs at the top.
-
-A personal work tracker: a small static web app (`index.html` + `css/` + `js/`)
+A personal work tracker: a small static web app
 paired with a Cowork skill (`otto-scan`) that scans Slack, email, and Teams and
 turns what needs follow-up into tasks and loops.
 
@@ -45,7 +41,6 @@ python3 -m http.server 8000
 Then open `http://localhost:8000/` (index.html loads automatically).
 
 **A couple of things worth knowing:**
-- `favicon.ico` isn't included in this repo — add your own at the repo root if you want a tab icon; without it the app still works fine, just with the browser's default icon.
 - After pushing an update, your own browser (or a coworker's) may show a cached
   older version for a bit. A hard refresh (Cmd/Ctrl+Shift+R) forces the latest.
 
