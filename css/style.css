@@ -188,9 +188,26 @@
   .view-head p{font-size:13px;color:var(--muted)}
 
   /* ---- add row ---- */
+  .adder-wrap{margin-bottom:22px}
+  .adder-toggle{
+    display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+    padding:4px 2px 10px;min-height:39px;
+  }
+  .adder-toggle:hover .adder-toggle-label{color:var(--ink)}
+  .adder-toggle .chev{display:inline-flex;align-items:center;transition:transform .15s;color:var(--faint)}
+  .adder-toggle-label{font-family:var(--mono);font-size:12px;letter-spacing:.02em;color:var(--muted);font-weight:700}
+  .adder-toggle .line{flex:1;height:1px;background:var(--line)}
+  .adder-cue{
+    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--signal);
+    border:1px dashed var(--signal);border-radius:var(--radius-pill);padding:3px 11px;white-space:nowrap;
+  }
+  .adder-toggle:hover .adder-cue{background:var(--signal);color:#fff;border-style:solid}
+  .adder-wrap:not(.collapsed) .adder-cue{display:none}
+  .adder-wrap.collapsed .adder{display:none}
+  .adder-wrap.collapsed .chev{transform:rotate(-90deg)}
   .adder{
     background:var(--surface);border:1px solid var(--card-line);border-radius:var(--radius);
-    padding:10px;margin-bottom:22px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    padding:10px;margin-bottom:0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
     box-shadow:var(--lift);
   }
   .adder input.title{flex:1;min-width:180px;border:none;padding:8px 6px;background:transparent;font-size:15px}
