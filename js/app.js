@@ -500,6 +500,26 @@
   var CHEV='<svg viewBox="0 0 24 24" class="chev-svg"><path d="M6 9l6 6 6-6"/></svg>';
   function isCollapsed(key){ return !!(state.settings.collapsed && state.settings.collapsed[key]); }
   function toggleCollapse(key){ state.settings.collapsed=state.settings.collapsed||{}; state.settings.collapsed[key]=!state.settings.collapsed[key]; persist(); renderAll(); }
+
+  // Manual-add sections (task/loop) reuse the collapsed settings store but default
+  // to COLLAPSED when unset — the opposite of isCollapsed — so they can't reuse it directly.
+  var ADDERS=[["adder-task","t-title"],["adder-loop","l-src"]];
+  function adderCollapsed(key){ var c=state.settings.collapsed; return (!c||c[key]===undefined)?true:!!c[key]; }
+  function applyAdders(){
+    ADDERS.forEach(function(a){
+      var wrap=document.getElementById(a[0]+"-wrap"); if(!wrap) return;
+      var col=adderCollapsed(a[0]);
+      wrap.classList.toggle("collapsed",col);
+      var t=wrap.querySelector(".adder-toggle"); if(t) t.setAttribute("aria-expanded",String(!col));
+    });
+  }
+  function toggleAdder(key){
+    state.settings.collapsed=state.settings.collapsed||{};
+    var nowCollapsed=!adderCollapsed(key);
+    state.settings.collapsed[key]=nowCollapsed;
+    persist(); applyAdders();
+    if(!nowCollapsed){ var f=document.getElementById(ADDERS.filter(function(a){return a[0]===key;}).map(function(a){return a[1];})[0]); if(f) f.focus(); }
+  }
   function collapsibleGroup(key,label,count,cardsHtml){
     var col=isCollapsed(key);
     return '<div class="group-label collapsible'+(col?' collapsed':'')+'" data-collapse="'+key+'" role="button" tabindex="0" aria-expanded="'+(!col)+'" style="margin-top:20px">'
@@ -685,7 +705,7 @@
   }
 
   function renderAll(){
-    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome();
+    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders();
   }
   function renderStats(){
     var el=document.getElementById("statline"); if(!el) return;
@@ -1053,6 +1073,15 @@
     if(e.key!=="Enter"&&e.key!==" ") return;
     var g=e.target.closest("[data-collapse]"); if(!g) return;
     e.preventDefault(); toggleCollapse(g.getAttribute("data-collapse"));
+  });
+  document.addEventListener("click",function(e){
+    var a=e.target.closest("[data-adder]"); if(!a) return;
+    toggleAdder(a.getAttribute("data-adder"));
+  });
+  document.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.key!==" ") return;
+    var a=e.target.closest("[data-adder]"); if(!a) return;
+    e.preventDefault(); toggleAdder(a.getAttribute("data-adder"));
   });
 
   // ---------- drag-to-schedule (week columns) ----------
