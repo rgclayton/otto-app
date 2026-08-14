@@ -208,6 +208,9 @@
   var ICON_RESOLVE='<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18" r="1.6"/></svg>';
   var ICON_SNOOZE='<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
   var ICON_WAKE='<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+  // ICON_FILE is already taken (the header's Link-data-file chain icon), so these use distinct names.
+  var ICON_PAST='<svg viewBox="0 0 24 24"><path d="M12 8v4l2 2M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>';
+  var ICON_RECENT='<svg viewBox="0 0 24 24"><path d="M12 21V11m0 0 4 4m-4-4-4 4M5 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/></svg>';
   var MISS_SRC=[["slack","Slack"],["email","email"],["teams","Teams"],["other","other"]];
   var SNOOZE_OPTS=[["tomorrow","Tomorrow"],["3days","3 days"],["nextweek","Next week"]];
 
@@ -499,9 +502,15 @@
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   var CHEV='<svg viewBox="0 0 24 24" class="chev-svg"><path d="M6 9l6 6 6-6"/></svg>';
   function isCollapsed(key){ return !!(state.settings.collapsed && state.settings.collapsed[key]); }
-  function toggleCollapse(key){ state.settings.collapsed=state.settings.collapsed||{}; state.settings.collapsed[key]=!state.settings.collapsed[key]; persist(); renderAll(); }
-  function collapsibleGroup(key,label,count,cardsHtml){
-    var col=isCollapsed(key);
+  // Flip based on what's on screen (the element's collapsed class), not the stored value —
+  // a group shown collapsed via a defaultCol (e.g. "Past meetings") has no stored value yet,
+  // so toggling the stored value would need two clicks to open. Reading the DOM avoids that.
+  function toggleCollapse(g){ var key=g.getAttribute("data-collapse"); state.settings.collapsed=state.settings.collapsed||{}; state.settings.collapsed[key]=!g.classList.contains("collapsed"); persist(); renderAll(); }
+  function collapsibleGroup(key,label,count,cardsHtml,defaultCol){
+    // Default to defaultCol only when the user hasn't toggled this group yet; once they have,
+    // their stored choice wins. Existing callers pass no defaultCol → defaults to expanded.
+    var c=state.settings.collapsed;
+    var col=(c && key in c) ? !!c[key] : !!defaultCol;
     return '<div class="group-label collapsible'+(col?' collapsed':'')+'" data-collapse="'+key+'" role="button" tabindex="0" aria-expanded="'+(!col)+'" style="margin-top:20px">'
       + '<span class="chev">'+CHEV+'</span><span class="eyebrow">'+label+' · '+count+'</span><span class="line"></span></div>'
       + '<div class="group-body"'+(col?' hidden':'')+'>'+cardsHtml+'</div>';
@@ -598,13 +607,27 @@
   }
 
   // ---------- rendering: teams meetings ----------
+  // A meeting folds into the collapsed "Past meetings" group if it's older than
+  // MEETING_RECENT_DAYS OR the user manually filed it (m.filed). A missing/unparseable
+  // date counts as recent so a dateless meeting can't silently hide in the collapsed group.
+  var MEETING_RECENT_DAYS=14;
+  function meetingAgeDays(m){ return m.date ? (Date.now()-new Date(m.date).getTime())/86400000 : 0; }
+  function meetingIsEarlier(m){ return !!m.filed || meetingAgeDays(m) > MEETING_RECENT_DAYS; }
   function meetingCard(m){
     var when = m.date ? new Date(m.date).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}) : "";
+    // File button on recent cards; unfile only when un-filing would actually bring it back
+    // (still within the window) — a genuinely-old meeting stays folded, so no misleading button.
+    var earlier = meetingIsEarlier(m);
+    var fileBtn = earlier
+      ? (m.filed && meetingAgeDays(m) <= MEETING_RECENT_DAYS
+          ? '<button class="icon-btn" data-unfile aria-label="Move to Recent" title="Move back to Recent">'+ICON_RECENT+'</button>' : '')
+      : '<button class="icon-btn" data-file aria-label="Move to Past meetings" title="Move to Past meetings">'+ICON_PAST+'</button>';
     return '<div class="m-card glow-purple" data-id="'+esc(m.id)+'">'
       + '<div class="m-head"><div style="display:flex;gap:10px;align-items:flex-start"><span class="dot" style="background:var(--teams);margin-top:6px"></span><div><div class="m-title">'+esc(m.title||"Untitled meeting")+'</div>'
       + (when?'<div class="m-date">'+when+'</div>':'')+'</div></div>'
       + '<div class="m-actions">'
       + (m.link?'<a class="tag src-link" href="'+esc(m.link)+'" target="_blank" rel="noopener noreferrer">'+ICON_LINK+'recording</a>':'')
+      + fileBtn
       + '<button class="icon-btn" data-del aria-label="Delete">'+ICON_DEL+'</button></div></div>'
       + (m.notes?'<div class="m-notes">'+esc(m.notes)+'</div>':'')
       + '</div>';
@@ -613,7 +636,15 @@
     var el=document.getElementById("meetings-list");
     if(!state.meetings.length){ el.innerHTML=emptyState("No meetings captured","Recorded Teams meetings with notes show up here after a scan."); return; }
     var items=state.meetings.slice().sort(function(a,b){ return String(b.date||"").localeCompare(String(a.date||"")); });
-    el.innerHTML = items.map(meetingCard).join('');
+    var recent=items.filter(function(m){ return !meetingIsEarlier(m); });
+    var earlier=items.filter(meetingIsEarlier);
+    var html = recent.map(meetingCard).join('');
+    if(earlier.length){
+      // When nothing is recent (a quiet stretch), open the group by default so the tab
+      // isn't just a lone collapsed bar; a manual toggle still persists and overrides this.
+      html += collapsibleGroup("teams-past","Past meetings",earlier.length, earlier.map(meetingCard).join(''), recent.length>0);
+    }
+    el.innerHTML = html;
   }
 
   // ---------- weekly review ----------
@@ -822,7 +853,9 @@
   });
   document.getElementById("meetings-list").addEventListener("click",function(e){
     var card=e.target.closest("[data-id]"); if(!card) return;
-    if(e.target.closest("[data-del]")) del(card.getAttribute("data-id"));
+    if(e.target.closest("[data-del]")){ del(card.getAttribute("data-id")); return; }
+    if(e.target.closest("[data-file]")){ setMeetingFiled(card.getAttribute("data-id"),true); return; }
+    if(e.target.closest("[data-unfile]")){ setMeetingFiled(card.getAttribute("data-id"),false); return; }
   });
   document.getElementById("resetScanBtn").addEventListener("click",function(){
     if(!window.confirm("Reset scan history?\n\nThis empties the Review queue and Rejected archive, and clears what the scan remembers — so the next scan re-imports everything as new.\n\nYour approved tasks, loops, and Teams meetings are kept.")) return;
@@ -1018,6 +1051,11 @@
     state.meetings=state.meetings.filter(function(m){return m.id!==id;});
     persist(); renderAll();
   }
+  function setMeetingFiled(id,filed){
+    var m=state.meetings.filter(function(x){return x.id===id;})[0]; if(!m) return;
+    m.filed=filed; persist(); renderAll();
+    toast(filed?"Moved to Past meetings":"Moved to Recent");
+  }
 
   // nav
   document.querySelectorAll('nav.views button').forEach(function(btn){
@@ -1047,12 +1085,12 @@
 
   document.addEventListener("click",function(e){
     var g=e.target.closest("[data-collapse]"); if(!g) return;
-    toggleCollapse(g.getAttribute("data-collapse"));
+    toggleCollapse(g);
   });
   document.addEventListener("keydown",function(e){
     if(e.key!=="Enter"&&e.key!==" ") return;
     var g=e.target.closest("[data-collapse]"); if(!g) return;
-    e.preventDefault(); toggleCollapse(g.getAttribute("data-collapse"));
+    e.preventDefault(); toggleCollapse(g);
   });
 
   // ---------- drag-to-schedule (week columns) ----------
