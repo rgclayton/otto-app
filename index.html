@@ -67,6 +67,13 @@
       <div><h2>Today</h2><p>What has your attention right now.</p></div>
     </div>
     <div class="today-cap" id="today-cap"></div>
+    <div class="adder-wrap collapsed" id="adder-task-wrap">
+    <div class="adder-toggle" data-adder="adder-task" role="button" tabindex="0" aria-expanded="false">
+      <span class="chev"><svg viewBox="0 0 24 24" class="chev-svg"><path d="M6 9l6 6 6-6"/></svg></span>
+      <span class="adder-toggle-label">Manually add a task</span>
+      <span class="line"></span>
+      <span class="adder-cue">＋ Add</span>
+    </div>
     <div class="adder" id="adder-task">
       <input class="title" id="t-title" placeholder="Add a task, bug, or project…" autocomplete="off">
       <select id="t-type"><option value="task">task</option><option value="bug">bug</option><option value="project">project</option></select>
@@ -82,6 +89,7 @@
         <input id="t-link" class="ctx-field" placeholder="https://…  source link (PR, thread, doc)" inputmode="url" autocomplete="off">
         <input id="t-note" class="ctx-field" placeholder="TLDR — one line of context" autocomplete="off">
       </div>
+    </div>
     </div>
     <div id="today-list"></div>
   </section>
@@ -107,6 +115,13 @@
     <div class="view-head">
       <div><h2>Loops</h2><p>Open conversations that need an action. Log them here so they don't slip.</p></div>
     </div>
+    <div class="adder-wrap collapsed" id="adder-loop-wrap">
+    <div class="adder-toggle" data-adder="adder-loop" role="button" tabindex="0" aria-expanded="false">
+      <span class="chev"><svg viewBox="0 0 24 24" class="chev-svg"><path d="M6 9l6 6 6-6"/></svg></span>
+      <span class="adder-toggle-label">Manually add a loop</span>
+      <span class="line"></span>
+      <span class="adder-cue">＋ Add</span>
+    </div>
     <div class="adder" id="adder-loop">
       <select id="l-src"><option value="slack">slack</option><option value="email">email</option><option value="other">other</option></select>
       <input class="who" id="l-who" placeholder="who / channel" autocomplete="off">
@@ -116,6 +131,7 @@
       <div class="ctx-row" id="l-context">
         <input id="l-link" class="ctx-field" placeholder="Link to the conversation (Slack thread / email) — optional" inputmode="url" autocomplete="off">
       </div>
+    </div>
     </div>
     <div id="loops-list"></div>
   </section>
