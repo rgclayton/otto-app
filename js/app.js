@@ -208,7 +208,7 @@
   var ICON_RESOLVE='<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18" r="1.6"/></svg>';
   var ICON_SNOOZE='<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
   var ICON_WAKE='<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
-  // ICON_FILE is already taken (the header's Link-data-file chain icon), so these use distinct names.
+  // The header's data-file button has its own ICON_SYNC (defined later), so these use distinct names.
   var ICON_PAST='<svg viewBox="0 0 24 24"><path d="M12 8v4l2 2M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>';
   var ICON_RECENT='<svg viewBox="0 0 24 24"><path d="M12 21V11m0 0 4 4m-4-4-4 4M5 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/></svg>';
   var MISS_SRC=[["slack","Slack"],["email","email"],["teams","Teams"],["other","other"]];
@@ -280,12 +280,19 @@
     if((now-d)/86400000 < 7) return d.toLocaleDateString(undefined,{weekday:"short"});
     return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
   }
+  // provenance shows the full capture date (weekday + month/day, e.g. "Thu, Aug 20") always,
+  // unlike shortWhen's relative weekday/time — so you can always see when an item was pulled.
+  function captureWhen(iso){
+    if(!iso) return '';
+    var d=new Date(iso); if(isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  }
   function provenanceLine(item){
     var s=item.source; if(!s) return '';
     var parts=[];
     var sys=s.system||item.src; if(sys) parts.push(esc(sys));
     if(s.from) parts.push(esc(s.from));
-    var w=shortWhen(s.at); if(w) parts.push(w);
+    var w=captureWhen(s.at); if(w) parts.push(w);
     if(!parts.length) return '';
     return '<div class="provenance" title="Where this came from">\u21b3 from '+parts.join(' \u00b7 ')+'</div>';
   }
@@ -1225,7 +1232,10 @@
 
   // ---------- file link (otto-data.json) ----------
   var needsReconnect=false;
-  var ICON_FILE='<svg viewBox="0 0 24 24"><path d="M9 15l6-6M10.5 6.5l1-1a4 4 0 0 1 6 6l-1 1M13.5 17.5l-1 1a4 4 0 0 1-6-6l1-1"/></svg>';
+  // Sync arrows for the data-file button; the .sync-spin group is what the hover animation rotates.
+  var ICON_SYNC='<svg viewBox="0 0 24 24"><g class="sync-spin"><polyline points="21 4 21 9 16 9"/><polyline points="3 20 3 15 8 15"/><path d="M4.2 9a8 8 0 0 1 13.2-3L21 9M3 15l3.6 3A8 8 0 0 0 19.8 15"/></g></svg>';
+  // Orbiting-spark overlay for the data-file button; CSS reveals it on hover.
+  var SYNC_FX='<span class="sync-fx" aria-hidden="true"><span class="sync-orbit"><i class="sync-tail"></i><i class="sync-dot"></i></span></span>';
   function showReconnect(on){ var bar=document.getElementById("reconnectBar"); if(bar) bar.hidden=!on; }
   var welcomeDismissed=false;   // session-only; reappears on reload if still genuinely empty
   function isFirstRunEmpty(){
@@ -1235,7 +1245,7 @@
   }
   function showWelcome(){ var bar=document.getElementById("welcomeBar"); if(bar) bar.hidden=!isFirstRunEmpty(); }
   function updateFileBtn(){
-    var b=document.getElementById("fileBtn"); b.innerHTML=ICON_FILE;
+    var b=document.getElementById("fileBtn"); b.innerHTML=ICON_SYNC+SYNC_FX;
     b.classList.remove("linked","reconnect");
     if(needsReconnect){ b.classList.add("reconnect"); b.title="Data file needs reconnecting — click to reconnect"; b.setAttribute("aria-label","Reconnect data file"); }
     else if(fileHandle){ b.classList.add("linked"); b.title="Linked to otto-data.json — click to pull the latest"; b.setAttribute("aria-label","Refresh from linked file"); }
