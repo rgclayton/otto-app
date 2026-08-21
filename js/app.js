@@ -225,7 +225,7 @@
   }
   function snoozeButton(l){
     if(l.done||isSnoozed(l)) return '';
-    return '<button class="icon-btn snooze" data-snooze aria-label="Snooze this loop" title="Snooze — resurface later">'+ICON_SNOOZE+'</button>';
+    return '<button class="icon-btn snooze" data-snooze aria-label="Snooze this follow-up" title="Snooze — resurface later">'+ICON_SNOOZE+'</button>';
   }
   function snoozeRow(l){
     if(l.done||isSnoozed(l)) return '';
@@ -471,9 +471,9 @@
       + '</div>'
       + '</div>'
       + '<div class="card-actions">'
-      + (isSnoozed(l)?'<button class="icon-btn wake" data-wake aria-label="Wake this loop now" title="Bring back now">'+ICON_WAKE+'</button>':snoozeButton(l))
+      + (isSnoozed(l)?'<button class="icon-btn wake" data-wake aria-label="Wake this follow-up now" title="Bring back now">'+ICON_WAKE+'</button>':snoozeButton(l))
       + flagButton(l)
-      + '<button class="icon-btn edit" data-edit aria-label="Edit loop">'+ICON_EDIT+'</button>'
+      + '<button class="icon-btn edit" data-edit aria-label="Edit follow-up">'+ICON_EDIT+'</button>'
       + '<button class="icon-btn" data-del aria-label="Delete">'+ICON_DEL+'</button></div>'
       + '</div>'
       + flagRow(l)
@@ -483,7 +483,7 @@
   }
   function renderLoops(){
     var el = document.getElementById("loops-list");
-    if(!state.loops.length){ el.innerHTML = emptyState("No open loops","When a Slack thread or email needs an action, log it here so it doesn't get buried."); return; }
+    if(!state.loops.length){ el.innerHTML = emptyState("No open follow-ups","When a Slack thread or email needs an action, log it here so it doesn't get buried."); return; }
     var open = state.loops.filter(function(l){return !l.done && !isSnoozed(l);});
     open.sort(function(a,b){
       var sa=staleLevel(a)?1:0, sb=staleLevel(b)?1:0;
@@ -494,7 +494,7 @@
     var snoozed = state.loops.filter(function(l){return !l.done && isSnoozed(l);})
       .sort(function(a,b){ return new Date(a.snoozeUntil)-new Date(b.snoozeUntil); });  // soonest to return first
     var done = state.loops.filter(function(l){return l.done && visibleLocally(l);});
-    var html = open.length ? open.map(loopCard).join('') : emptyState("No open loops right now","Anything snoozed or closed is below.");
+    var html = open.length ? open.map(loopCard).join('') : emptyState("No open follow-ups right now","Anything snoozed or closed is below.");
     if(snoozed.length){
       html += '<div class="group-label" style="margin-top:20px"><span class="eyebrow">Snoozed · '+snoozed.length+'</span><span class="line"></span></div>';
       html += snoozed.map(loopCard).join('');
@@ -566,7 +566,7 @@
       ? '<span class="tag pri-'+item.pri+'" title="'+PRI_LABEL[item.pri]+'">'+item.pri+'</span>'
       : '<span class="dot" style="background:'+glow.dot+';margin-top:5px" title="'+glow.title+'"></span>';
     return '<div class="r-card'+(glow.cls?' '+glow.cls:'')+'" data-id="'+esc(item.id)+'">'
-      + '<div class="r-top">'+indicator+'<span class="r-kind">'+(isTask?'task':'loop')+'</span>'
+      + '<div class="r-top">'+indicator+'<span class="r-kind">'+(isTask?'task':'follow-up')+'</span>'
       + '<div class="r-body"><div class="r-title">'+esc(title)+'</div>'
       + (sub?'<div class="r-note">'+esc(sub)+'</div>':'')
       + '<div class="r-meta">'+metaBits+'</div></div></div>'
@@ -587,7 +587,7 @@
     var title = isTask ? item.title : item.summary;
     var when = item.rejectedAt ? new Date(item.rejectedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "";
     return '<div class="r-card glow-blue" data-id="'+esc(item.id)+'">'
-      + '<div class="r-top"><span class="dot" style="background:var(--signal);margin-top:5px"></span><span class="r-kind" style="background:var(--surface-2);color:var(--muted)">'+(isTask?'task':'loop')+'</span>'
+      + '<div class="r-top"><span class="dot" style="background:var(--signal);margin-top:5px"></span><span class="r-kind" style="background:var(--surface-2);color:var(--muted)">'+(isTask?'task':'follow-up')+'</span>'
       + '<div class="r-body"><div class="r-title">'+esc(title)+'</div>'
       + '<div class="r-meta">'
       + (item.reason?'<span class="rej-reason">'+esc(item.reason.replace(/-/g," "))+'</span>':'')
@@ -615,7 +615,7 @@
     var meta = RESOLUTION_META[kind]||RESOLUTION_META.completed;
     var when = item.completedAt ? new Date(item.completedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "";
     return '<div class="r-card'+(meta.glow?' '+meta.glow:'')+'" data-id="'+esc(item.id)+'">'
-      + '<div class="r-top"><span class="dot" style="background:'+meta.color+';margin-top:5px"></span><span class="r-kind" style="background:var(--surface-2);color:'+meta.color+'">'+(isTask?'task':'loop')+'</span>'
+      + '<div class="r-top"><span class="dot" style="background:'+meta.color+';margin-top:5px"></span><span class="r-kind" style="background:var(--surface-2);color:'+meta.color+'">'+(isTask?'task':'follow-up')+'</span>'
       + '<div class="r-body"><div class="r-title">'+esc(title)+'</div>'
       + '<div class="r-meta">'
       + '<span class="rej-reason" style="color:'+meta.color+'">'+(isTask?meta.label:'closed')+'</span>'
@@ -720,8 +720,8 @@
       + list(aging,function(it){ var lvl=staleLevel(it); return '<div class="wk-item"><span class="wk-age '+lvl+'">'+ageDays(it)+'d</span><span class="wk-item-t">'+itemTitle(it)+'</span></div>'; },"Nothing's slipping. Nice.")
       +'</div>';
     html+='<div class="wk-section"><div class="wk-h">Still owed <span class="wk-count">'+owed.length+'</span></div>'
-      + '<div class="wk-sub">Open loops \u2014 who\u2019s waiting on you.</div>'
-      + list(owed,function(l){ return '<div class="wk-item"><span class="wk-who">'+esc(l.who||l.src)+'</span><span class="wk-item-t">'+esc(l.summary)+'</span><span class="wk-item-meta">'+ageDays(l)+'d</span></div>'; },"No open loops. You\u2019re square with everyone.")
+      + '<div class="wk-sub">Open follow-ups \u2014 who\u2019s waiting on you.</div>'
+      + list(owed,function(l){ return '<div class="wk-item"><span class="wk-who">'+esc(l.who||l.src)+'</span><span class="wk-item-t">'+esc(l.summary)+'</span><span class="wk-item-meta">'+ageDays(l)+'d</span></div>'; },"No open follow-ups. You\u2019re square with everyone.")
       +'</div>';
     html+='<div class="wk-section"><div class="wk-h">This week\u2019s meeting load</div>'+daysRow(0)+'</div>';
     html+='<div class="wk-section"><div class="wk-h">The week ahead</div>'
@@ -757,13 +757,13 @@
     var agingCt=state.tasks.concat(state.loops).filter(function(it){ return staleLevel(it); }).length;
     var loops=state.loops.filter(function(l){return !l.done && !isSnoozed(l);});
     var avgAge=loops.length ? Math.round(loops.reduce(function(s,l){return s+ageDays(l);},0)/loops.length) : 0;
-    var parts=[openTasks+" task"+(openTasks===1?"":"s"), openLoops+" loop"+(openLoops===1?"":"s")+" open"];
+    var parts=[openTasks+" task"+(openTasks===1?"":"s"), openLoops+" follow-up"+(openLoops===1?"":"s")+" open"];
     var closedBit=doneWk+" done";
     if(reassignedWk) closedBit+=" · "+reassignedWk+" reassigned";
     if(droppedWk) closedBit+=" · "+droppedWk+" dropped";
     parts.push(closedBit+" this week");
     if(agingCt) parts.push(agingCt+" aging");
-    if(loops.length) parts.push("avg loop age "+avgAge+"d");
+    if(loops.length) parts.push("avg follow-up age "+avgAge+"d");
     el.textContent = "On your plate: "+parts.join(" · ");
   }
 
@@ -885,7 +885,7 @@
     if(e.target.closest("[data-unfile]")){ setMeetingFiled(card.getAttribute("data-id"),false); return; }
   });
   document.getElementById("resetScanBtn").addEventListener("click",function(){
-    if(!window.confirm("Reset scan history?\n\nThis empties the Review queue and Rejected archive, and clears what the scan remembers — so the next scan re-imports everything as new.\n\nYour approved tasks, loops, and Teams meetings are kept.")) return;
+    if(!window.confirm("Reset scan history?\n\nThis empties the Review queue and Rejected archive, and clears what the scan remembers — so the next scan re-imports everything as new.\n\nYour approved tasks, follow-ups, and Teams meetings are kept.")) return;
     state.pending=[]; state.rejected=[];
     state.meta.processedSourceIds=[]; state.meta.feedback=[];
     persist(); renderAll(); toast("Scan history reset");
@@ -1010,7 +1010,7 @@
   function wakeLoop(id){
     var l=findLoop(id); if(!l) return;
     delete l.snoozeUntil;
-    persist(); renderAll(); toast("Back in your open loops");
+    persist(); renderAll(); toast("Back in your open follow-ups");
   }
   function toggle(id){
     var it=findAny(id); if(!it) return;
@@ -1096,19 +1096,25 @@
   // capacity panel
   var panel=document.getElementById("panel"), scrim=document.getElementById("scrim");
   var weeklyPanel=document.getElementById("weeklyPanel");
+  var aboutPanel=document.getElementById("aboutPanel");
   function openPanel(){ panel.classList.add("open"); scrim.classList.add("open"); panel.setAttribute("aria-hidden","false"); refreshBlurb(); }
   function closePanels(){
     panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
     weeklyPanel.classList.remove("open"); weeklyPanel.setAttribute("aria-hidden","true");
+    aboutPanel.classList.remove("open"); aboutPanel.setAttribute("aria-hidden","true");
     scrim.classList.remove("open");
   }
   var closePanel=closePanels;
   function openWeekly(){ buildWeekly(); weeklyPanel.classList.add("open"); scrim.classList.add("open"); weeklyPanel.setAttribute("aria-hidden","false"); }
+  function openAbout(){ aboutPanel.classList.add("open"); scrim.classList.add("open"); aboutPanel.setAttribute("aria-hidden","false"); }
   document.getElementById("gaugeBtn").addEventListener("click",openPanel);
   document.getElementById("panelClose").addEventListener("click",closePanels);
   document.getElementById("weeklyBtn").addEventListener("click",openWeekly);
   document.getElementById("weeklyClose").addEventListener("click",closePanels);
+  document.getElementById("aboutBtn").addEventListener("click",openAbout);
+  document.getElementById("aboutClose").addEventListener("click",closePanels);
   document.getElementById("weeklyBtn").innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3 9h18M8 3v3M16 3v3M8 15l2.5 2.5L16 12"/></svg>';
+  document.getElementById("aboutBtn").innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>';
 
   document.addEventListener("click",function(e){
     var g=e.target.closest("[data-collapse]"); if(!g) return;
