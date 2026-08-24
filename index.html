@@ -20,6 +20,7 @@
       <h1>Otto</h1>
       <span class="today-date" id="todayDate"></span>
     </div>
+    <button class="theme-btn" id="aboutBtn" aria-label="About Otto" title="About Otto"></button>
     <button class="theme-btn" id="weeklyBtn" aria-label="Weekly review" title="Weekly review"></button>
     <button class="theme-btn" id="fileBtn" aria-label="Link data file" title="Link otto-data.json"></button>
     <button class="theme-btn" id="themeBtn" aria-label="Theme: system" title="Theme: system"></button>
@@ -41,7 +42,7 @@
   <button role="tab" aria-selected="true" data-view="today">Today<span class="count" id="c-today"></span></button>
   <button role="tab" aria-selected="false" data-view="week">This week<span class="count" id="c-week"></span></button>
   <button role="tab" aria-selected="false" data-view="later">Later<span class="count" id="c-later"></span></button>
-  <button role="tab" aria-selected="false" data-view="loops">Loops<span class="count" id="c-loops"></span></button>
+  <button role="tab" aria-selected="false" data-view="loops">Follow-ups<span class="count" id="c-loops"></span></button>
   <button role="tab" aria-selected="false" data-view="teams">Teams<span class="count" id="c-teams"></span></button>
   <button role="tab" aria-selected="false" data-view="review">Review<span class="count" id="c-review"></span></button>
   <button role="tab" aria-selected="false" data-view="archive">Archive<span class="count" id="c-archive"></span></button>
@@ -113,12 +114,12 @@
   <!-- LOOPS -->
   <section class="view" id="view-loops">
     <div class="view-head">
-      <div><h2>Loops</h2><p>Open conversations that need an action. Log them here so they don't slip.</p></div>
+      <div><h2>Follow-ups</h2><p>Open conversations that need an action. Log them here so they don't slip.</p></div>
     </div>
     <div class="adder-wrap collapsed" id="adder-loop-wrap">
     <div class="adder-toggle" data-adder="adder-loop" role="button" tabindex="0" aria-expanded="false">
       <span class="chev"><svg viewBox="0 0 24 24" class="chev-svg"><path d="M6 9l6 6 6-6"/></svg></span>
-      <span class="adder-toggle-label">Manually add a loop</span>
+      <span class="adder-toggle-label">Manually add a follow-up</span>
       <span class="line"></span>
       <span class="adder-cue">＋ Add</span>
     </div>
@@ -139,7 +140,7 @@
   <!-- TEAMS -->
   <section class="view" id="view-teams">
     <div class="view-head">
-      <div><h2>Teams</h2><p>Notes and recaps from recorded Teams meetings. Action items flow into Review as tasks and loops.</p></div>
+      <div><h2>Teams</h2><p>Notes and recaps from recorded Teams meetings. Action items flow into Review as tasks and follow-ups.</p></div>
     </div>
     <div id="meetings-list"></div>
   </section>
@@ -227,6 +228,75 @@
     <button class="close-x" id="weeklyClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
   <div class="panel-body" id="weekly-body"></div>
+</aside>
+
+<aside class="panel wide" id="aboutPanel" aria-hidden="true" aria-label="About Otto">
+  <div class="panel-head">
+    <h2>About Otto</h2>
+    <button class="close-x" id="aboutClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="panel-body about">
+
+    <section class="about-sec">
+      <h3>What Otto is</h3>
+      <p class="about-lead">Each morning, tell me what I owe people and whether I can take on more &mdash; without digging through Slack, email, and Teams.</p>
+      <p>A personal work tracker fed by an AI scan, not manual entry. It reads your Slack, email, Teams, and calendar and stages what needs follow-up into a review queue.</p>
+    </section>
+
+    <section class="about-sec">
+      <h3>Getting started</h3>
+      <ol class="about-steps">
+        <li>Run the <b>otto-scan</b> skill in Cowork &mdash; it reads Slack, email, Teams, and your calendar.</li>
+        <li>Back here, click the <b>sync button</b> (top-right) to pull in what it found. <span class="about-note">&larr; the step people forget.</span></li>
+        <li>New items wait in the <b>Review</b> tab &mdash; approve the keepers, reject the noise. Nothing hits your board until you do.</li>
+        <li>Triage as normal, and check the <b>capacity gauge</b> before taking on more.</li>
+      </ol>
+      <div class="about-callout">
+        <b>Looks broken, isn&rsquo;t:</b>
+        <ul>
+          <li><b>After reloading the page</b>, you&rsquo;ll see an amber &ldquo;Reconnect &amp; load&rdquo; bar and the sync button lit up &mdash; just click it. Your data is safe in the file; browsers drop the file link on reload by design.</li>
+          <li><b>Scanned but nothing new showed up?</b> You haven&rsquo;t hit sync yet (step 2).</li>
+        </ul>
+      </div>
+      <p class="about-fine">First time here? That same sync button is where you link your <code>otto-data.json</code> file &mdash; see the handoff guide for one-time setup.</p>
+    </section>
+
+    <section class="about-sec">
+      <h3>What it does</h3>
+      <ul class="about-list">
+        <li><b>Scan &rarr; Review</b> &mdash; scanned items stage in a queue; you approve or reject, so nothing lands unreviewed.</li>
+        <li><b>Today &middot; This week &middot; Later</b> &mdash; tasks bucketed by when you&rsquo;ll do them.</li>
+        <li><b>Follow-ups</b> &mdash; open conversations that need an action, so they don&rsquo;t slip.</li>
+        <li><b>Teams</b> &mdash; notes and recaps from recorded meetings; action items flow into Review.</li>
+        <li><b>Capacity gauge</b> &mdash; meeting hours + task hours against your daily ceiling, so you know if there&rsquo;s room.</li>
+        <li><b>Staleness nudges</b> &mdash; items you&rsquo;ve sat on get flagged, and clicking the tag resets the clock.</li>
+        <li><b>Snooze</b> &mdash; push a follow-up out to tomorrow, a few days, or next week.</li>
+        <li><b>Resolution &amp; Archive</b> &mdash; close things as done, reassigned, or dropped; nothing is ever deleted.</li>
+        <li><b>Weekly review</b> &mdash; a step-back on what closed, what&rsquo;s aging, and the week&rsquo;s meeting load.</li>
+      </ul>
+    </section>
+
+    <section class="about-sec">
+      <h3>What it&rsquo;s deliberately not</h3>
+      <ul class="about-list">
+        <li>Not a generic to-do app &mdash; it&rsquo;s a sharp tool for one job, not a catch-all.</li>
+        <li>Not a team tool &mdash; single-user and private; there&rsquo;s no shared or cross-person view.</li>
+        <li>No sub-tasks, dependencies, time tracking, pomodoro, gamification, or noisy notifications.</li>
+        <li>It won&rsquo;t add anything to your board on its own &mdash; scanned items always wait for your review.</li>
+      </ul>
+    </section>
+
+    <section class="about-sec">
+      <h3>Why it&rsquo;s built this way</h3>
+      <ul class="about-list">
+        <li>A sharp tool beats a bloated one &mdash; every &ldquo;nice to have&rdquo; is resisted on purpose.</li>
+        <li>Capacity is real daily <b>hours</b>, not abstract points &mdash; it maps to your actual day.</li>
+        <li>Deferred isn&rsquo;t forgotten &mdash; <b>Later</b> and snoozed items are exempt from staleness.</li>
+        <li>Nothing is ever deleted &mdash; rejected and resolved items stay searchable in case they boomerang back.</li>
+      </ul>
+    </section>
+
+  </div>
 </aside>
 
 <div class="toast" id="toast"></div>
