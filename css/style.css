@@ -333,7 +333,7 @@
   .icon-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
 
   /* ---- week grid ---- */
-  .week{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
   .day-col{background:transparent;border:none;border-radius:var(--radius);padding:10px 4px;min-height:120px}
   .day-col.is-today{background:var(--signal-soft);border:1px solid var(--signal);padding:10px}
   .day-top{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line-2)}
