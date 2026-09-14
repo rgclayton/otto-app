@@ -22,6 +22,7 @@
     </div>
     <button class="theme-btn" id="aboutBtn" aria-label="About Otto" title="About Otto"></button>
     <button class="theme-btn" id="weeklyBtn" aria-label="Weekly review" title="Weekly review"></button>
+    <span class="sync-age" id="syncAge"></span>
     <button class="theme-btn" id="fileBtn" aria-label="Link data file" title="Link otto-data.json"></button>
     <button class="theme-btn" id="themeBtn" aria-label="Theme: system" title="Theme: system"></button>
   </div>
@@ -150,6 +151,7 @@
     <div class="view-head">
       <div><h2>Review</h2><p>Items the scan staged. Approve to add them, or reject with a reason.</p></div>
       <div class="review-controls">
+        <button class="btn-approve-all" id="approveAllBtn" style="display:none">Approve all</button>
         <label class="review-toggle"><input type="checkbox" id="reviewModeChk"> Stage scans for review</label>
         <button class="reset-btn" id="resetScanBtn">Reset scan history</button>
       </div>
