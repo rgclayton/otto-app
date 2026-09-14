@@ -749,7 +749,8 @@
   function updateSyncAge(){
     var el=document.getElementById("syncAge"); if(!el) return;
     var lr=state.meta&&state.meta.lastRun;
-    if(!lr){ el.textContent=""; return; }
+    if(!lr){ el.textContent=""; el.style.display="none"; return; }
+    el.style.display="";
     var mins=Math.round((Date.now()-new Date(lr).getTime())/60000);
     if(mins<1) el.textContent="synced just now";
     else if(mins<60) el.textContent="synced "+mins+"m ago";
