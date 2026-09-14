@@ -742,8 +742,35 @@
     document.getElementById("c-rejected").textContent = state.rejected.length || "";
   }
 
+  function updateTitle(){
+    var n=state.pending&&state.pending.length;
+    document.title=n?"("+n+") Otto":"Otto";
+  }
+  function updateSyncAge(){
+    var el=document.getElementById("syncAge"); if(!el) return;
+    var lr=state.meta&&state.meta.lastRun;
+    if(!lr){ el.textContent=""; return; }
+    var mins=Math.round((Date.now()-new Date(lr).getTime())/60000);
+    if(mins<1) el.textContent="synced just now";
+    else if(mins<60) el.textContent="synced "+mins+"m ago";
+    else if(mins<1440) el.textContent="synced "+Math.round(mins/60)+"h ago";
+    else el.textContent="synced "+new Date(lr).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  }
+  function approveAll(){
+    var n=state.pending&&state.pending.length; if(!n) return;
+    var snap=snapshotForUndo();
+    state.pending.slice().forEach(function(item){
+      var kind=item.kind; delete item.kind;
+      markProcessed(item);
+      if(!item.created) item.created=new Date().toISOString();
+      if(kind==="task") state.tasks.push(item); else state.loops.push(item);
+    });
+    state.pending=[];
+    persist(); renderAll(); toastUndo("Approved "+n+(n===1?" item":" items"),function(){ restoreSnapshot(snap); });
+  }
   function renderAll(){
-    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders();
+    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders(); updateTitle(); updateSyncAge();
+    var aab=document.getElementById("approveAllBtn"); if(aab) aab.style.display=state.pending&&state.pending.length?"":"none";
   }
   function renderStats(){
     var el=document.getElementById("statline"); if(!el) return;
@@ -884,6 +911,7 @@
     if(e.target.closest("[data-file]")){ setMeetingFiled(card.getAttribute("data-id"),true); return; }
     if(e.target.closest("[data-unfile]")){ setMeetingFiled(card.getAttribute("data-id"),false); return; }
   });
+  document.getElementById("approveAllBtn").addEventListener("click", approveAll);
   document.getElementById("resetScanBtn").addEventListener("click",function(){
     if(!window.confirm("Reset scan history?\n\nThis empties the Review queue and Rejected archive, and clears what the scan remembers — so the next scan re-imports everything as new.\n\nYour approved tasks, follow-ups, and Teams meetings are kept.")) return;
     state.pending=[]; state.rejected=[];
@@ -1085,12 +1113,13 @@
   }
 
   // nav
+  function switchView(name){
+    document.querySelectorAll('nav.views button').forEach(function(b){ b.setAttribute("aria-selected", b.dataset.view===name?"true":"false"); });
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove("active"); });
+    document.getElementById("view-"+name).classList.add("active");
+  }
   document.querySelectorAll('nav.views button').forEach(function(btn){
-    btn.addEventListener("click",function(){
-      document.querySelectorAll('nav.views button').forEach(function(b){ b.setAttribute("aria-selected", b===btn?"true":"false"); });
-      document.querySelectorAll('.view').forEach(function(v){ v.classList.remove("active"); });
-      document.getElementById("view-"+btn.dataset.view).classList.add("active");
-    });
+    btn.addEventListener("click",function(){ switchView(btn.dataset.view); });
   });
 
   // capacity panel
@@ -1257,6 +1286,7 @@
     else if(fileHandle){ b.classList.add("linked"); b.title="Linked to otto-data.json — click to pull the latest"; b.setAttribute("aria-label","Refresh from linked file"); }
     else { b.title=fsSupported?"Link otto-data.json":"File linking needs Chrome or Edge"; b.setAttribute("aria-label","Link data file"); }
     showReconnect(needsReconnect);
+    updateSyncAge();
   }
   function hydrate(parsed){
     if(!parsed) return;
@@ -1283,6 +1313,7 @@
       needsReconnect=false;
       try{ await idbSetHandle(h); }catch(e){}
       updateFileBtn(); applyReviewMode(); refreshBudgetUI(); renderAll();
+      if(state.pending && state.pending.length) switchView("review");
       toast("Linked to otto-data.json");
     }catch(e){ if(e && e.name!=="AbortError") toast("Couldn't link the file"); }
   }
@@ -1294,6 +1325,7 @@
       needsReconnect=false;
       if(data){ hydrate(data); }
       applyReviewMode(); refreshBudgetUI(); updateFileBtn(); renderAll();
+      if(state.pending && state.pending.length) switchView("review");
       toast(data ? "Pulled the latest from the file" : "Reconnected");
     }catch(e){ toast("Couldn't read the file"); }
   }
