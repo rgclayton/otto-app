@@ -1,14 +1,14 @@
 ---
-name: otto-scan
-description: Scan a recent day's Slack, email, and Teams meetings for anything that needs follow-up and turn it into Otto tasks and loops, appended to the shared otto-data.json file. Runs on demand at any time of day, and also on a schedule. Use this skill whenever the user asks to run the scan (or "morning scan"), triage yesterday, catch up on what needs follow-up, "update Otto", or generate follow-ups — and whenever the scheduled task fires. Trigger even if the user only says something like "run Otto", "what do I owe people", or "what did I miss yesterday".
+name: "otto-scan"
+description: "Scan a recent day's Slack, email, and Teams meetings for anything that needs follow-up and turn it into Otto tasks and loops, appended to the shared otto-data.json file. Runs on demand at any time of day, and also on a schedule. Use this skill whenever the user asks to run the scan (or \"morning scan\"), triage yesterday, catch up on what needs follow-up, \"update Otto\", or generate follow-ups — and whenever the scheduled task fires. Trigger even if the user only says something like \"run Otto\", \"what do I owe people\", or \"what did I miss yesterday\"."
 ---
 
-<!-- SKILL VERSION: v13 · 2026-09-04
+<!-- SKILL VERSION: v14 · 2026-09-17
      changelog:
+       v14 2026-09-17 — added concrete pending-item JSON examples + field-name cheat sheet (context-loss guard); fixes "undefined" rendering caused by wrong field names after context compaction
        v13 2026-09-04 — name Teams transcript-skip failure mode explicitly; finish-check now requires a stated attempt count so a silent 0 can't pass
        v12 2026-08-07 — meeting hours now count busy OR tentative events (dropped the "accepted" requirement); still excludes free/all-day/cancelled/declined
        v11 2026-07-22 — auto-detect the user's display name from M365/Slack and write settings.userName once, only if blank; never overwrites a value already set (manual or auto)
-     changelog:
        v10 2026-07-22 — capture source.from + source.at on every item (provenance line in Otto)
        v9 2026-07-22 — meeting hours now also cover next week (Mon–Fri) to feed the weekly review's "week ahead"
        v8 2026-07-22 — read meta.missed (false-negative flags) as a recall signal; widen coverage cautiously where the user repeatedly flags misses
@@ -23,7 +23,7 @@ description: Scan a recent day's Slack, email, and Teams meetings for anything t
 
 # Otto Morning Scan
 
-**Running this skill: state its version.** The first thing to do on any run is read the `SKILL VERSION` line above and include it in your summary (e.g. "otto-scan v7"). This lets the user confirm at a glance that the installed copy is the current one — the recurring failure with this skill is an *older* version being executed from memory after an update. Announcing the version makes a stale copy obvious immediately.
+**Running this skill: state its version.** The first thing to do on any run is read the `SKILL VERSION` line above and include it in your summary (e.g. "otto-scan v14"). This lets the user confirm at a glance that the installed copy is the current one — the recurring failure with this skill is an *older* version being executed from memory after an update. Announcing the version makes a stale copy obvious immediately.
 
 Otto is the user's personal work tracker. This skill is its producer: on each run it looks back over everything since the last run, decides what genuinely needs the user to follow up, and writes those items into Otto's data file as **tasks** (work to do) and **loops** (conversations that need a response). Otto reads that file; this skill's only job is to keep it accurately fed without ever creating duplicates.
 
@@ -99,10 +99,74 @@ A conversation where the next action is the user engaging in the thread itself.
 | `src` | `slack` \| `email` \| `other` | Teams items use `other` (Otto has no Teams badge yet); `source.system` still records `teams` |
 | `who` | string | Person or channel: "#team-eng", "Priya" |
 | `summary` | string | What the thread needs, in one line |
-| `needs` | `reply` \| `ticket` \| `meeting` \| `feedback` \| `review` \| `other` | The action type |
+| `needs` | `reply` \| `ticket` \| `meeting` \| `feedback` \| `review` \| `decision` \| `other` | The action type |
 | `link` | url | Permalink to the thread/message |
 | `done` | `false` | Always false on creation |
 | `source` | object | `{ "system": ..., "sourceId": ..., "from": "...", "at": "ISO" }` |
+
+### Concrete pending-item examples
+
+**⚠️ Context-loss guard — read before writing any pending items.** If you are resuming from a summary or compacted context and cannot recall the exact field names, copy these verbatim. Do NOT invent new field names. The field names below are what Otto's UI reads; any deviation causes "undefined" in the review queue. This error has occurred before (v14 changelog) and the examples below are the fix.
+
+Pending items use the **full task or loop shape above, PLUS `kind`**. Both are required simultaneously:
+- Omitting `kind` → Otto can't distinguish task from loop, defaults everything to loop rendering.
+- Using `kind` without the correct type-specific fields (e.g. writing `body` instead of `note`, or `title` instead of `summary` in a loop) → undefined display values.
+- **Always read an existing task and an existing loop from `otto-data.json` before writing pending items**, to confirm the schema matches what's in production.
+
+```json
+// Pending TASK — full task shape + kind field
+{
+  "id": "slack:1789656490.366739",
+  "kind": "task",
+  "title": "Review Milo PRs #6545 and #6538",
+  "type": "task",
+  "area": "Milo Core",
+  "eff": 2,
+  "pri": "med",
+  "bucket": "today",
+  "link": "https://github.com/adobecom/milo/pull/6545",
+  "note": "Dusan Kosanovic asked Ryan to review both PRs.",
+  "done": false,
+  "source": {
+    "system": "slack",
+    "sourceId": "1789656490.366739",
+    "from": "Dusan Kosanovic",
+    "at": "2026-09-17T14:01:30Z",
+    "capturedFrom": "morning-scan"
+  },
+  "created": "2026-09-17T14:52:52Z"
+}
+
+// Pending LOOP — full loop shape + kind field
+{
+  "id": "slack:1789633026.310189",
+  "kind": "loop",
+  "src": "slack",
+  "who": "Narcis Radu",
+  "summary": "Narcis raised concerns about a11y SLA due dates; Ryan may need to weigh in.",
+  "needs": "feedback",
+  "done": false,
+  "source": {
+    "system": "slack",
+    "sourceId": "1789633026.310189",
+    "from": "Narcis Radu",
+    "at": "2026-09-17T07:37:06Z",
+    "capturedFrom": "morning-scan"
+  },
+  "created": "2026-09-17T14:52:52Z"
+}
+```
+
+**Field-name cheat sheet (pending items):**
+
+| Wrong ❌ | Correct ✓ | Where |
+|---|---|---|
+| `kind: "task"` only, no type-specific fields | full task shape + `kind: "task"` | pending tasks |
+| `body` | `note` | tasks |
+| `createdAt` | `created` | both |
+| `type: "loop"` without `kind` | add `kind: "loop"` (Otto routes approvals by `kind`, not `type`) | loops |
+| `title` in a loop item | `summary` + `who` | loops |
+| `from` at top level | `source.from` | both |
 
 ### Meeting object (Teams reference records)
 
@@ -145,7 +209,7 @@ A recorded Teams meeting the user attended, captured as reference notes — **no
 
 7. **Stage & write.** Meeting records always go straight into `meetings` (never staged, deduped only against `meetings`). Meeting **hours** are written to `meetingHours` (overwriting each day in the capacity window — see below). For everything else: if `settings.reviewMode` is `true`, append survivors to **`pending`**; if `false`, append straight to `tasks`/`loops`. Add every **candidate** `sourceId` encountered this run (action items and message/email candidates, even deduped/suppressed ones) to `meta.processedSourceIds` — but **not** meeting ids. **Set `meta.lastRun` to the current moment — this becomes the start of the next run's rolling window, so getting it right is what keeps runs tiling without gaps.** Write the file back.
 
-8. **Report.** Start the summary by stating the skill version (from the `SKILL VERSION` header, e.g. "otto-scan v7") **and the window you covered** (e.g. "since Fri 7:02am — 3d") so the range is never a mystery. Then a short plain summary: counts staged (or added) grouped by source, meeting records captured, and the **meeting hours per day** you wrote (e.g. "Mon 5.5h · Tue 3h · Wed 6h · Thu 2h · Fri 4h") — so the user can skim before opening Otto. Note anything suppressed by feedback and any source that failed. Don't restate items skipped as duplicates.
+8. **Report.** Start the summary by stating the skill version (from the `SKILL VERSION` header, e.g. "otto-scan v14") **and the window you covered** (e.g. "since Fri 7:02am — 3d") so the range is never a mystery. Then a short plain summary: counts staged (or added) grouped by source, meeting records captured, and the **meeting hours per day** you wrote (e.g. "Mon 5.5h · Tue 3h · Wed 6h · Thu 2h · Fri 4h") — so the user can skim before opening Otto. Note anything suppressed by feedback and any source that failed. Don't restate items skipped as duplicates.
 
 9. **Finish-check (required).** Before you end, verify and state these in your summary:
    - **(a)** how many recorded meetings you read in the window, and **(b)** how many meeting records now exist in `meetings` for that window. **They must match.** If (b) < (a), you skipped the meeting-record step — go back and add the missing records.
@@ -159,7 +223,7 @@ A recorded Teams meeting the user attended, captured as reference notes — **no
 
 **When ownership is uncertain, prefer a loop.** Only create a task when it's clear the user owns the work. If someone flags a problem but it's not established that *the user* is the one to fix it (e.g. "the routing doc is 404ing for me"), don't assume ownership and stage a fix-it task — stage a **loop** to reply/triage instead. A loop keeps the ball in the user's court without silently committing them to work that might be someone else's. Turning a reply into a task is one tap for the user; un-committing from a wrongly-assumed task is friction.
 
-**`needs` (loops):** the person wants a written answer → `reply`; a bug/work item logged → `ticket`; time on the calendar → `meeting`; your opinion on something → `feedback`; a PR/doc reviewed → `review`; anything else → `other`.
+**`needs` (loops):** the person wants a written answer → `reply`; a bug/work item logged → `ticket`; time on the calendar → `meeting`; your opinion on something → `feedback`; a PR/doc reviewed → `review`; a choice from the user → `decision`; anything else → `other`.
 
 **Priority (`pri`):**
 - `high` — blocks someone else, has a deadline today or tomorrow, or is an explicit urgent ask.
@@ -251,3 +315,4 @@ Rejecting is filing, not shredding. A rejected item moves to `rejected` with its
 - **Don't touch existing items.** Only append. Never edit, reorder, complete, or delete what's already in the file — the user owns those.
 - **Preserve the file on error.** If a source fails mid-run, write what you have and report the failure; never overwrite the file with a partial/empty structure.
 - **Respect privacy.** Pull only the user's own accounts. Summaries are for the user's own eyes; keep them factual and brief.
+
