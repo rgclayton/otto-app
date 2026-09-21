@@ -554,6 +554,7 @@
   .about-list b,.about-steps b{color:var(--ink)}
   .about-changelog li::before{background:var(--muted)}
   .cl-date{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:2px}
+  .cl-skill-tag{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:var(--muted);border-radius:4px;padding:1px 5px;margin:0 3px;vertical-align:middle}
   .about-skill-ver{font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400;margin-left:6px}
   .about-skill-ver.current{color:var(--load-1)}
   .about-callout{background:var(--surface-2);border-radius:10px;padding:12px 14px;margin-bottom:12px}
