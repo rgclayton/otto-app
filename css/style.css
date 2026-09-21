@@ -553,6 +553,8 @@
   .about-list li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--signal)}
   .about-list b,.about-steps b{color:var(--ink)}
   .about-changelog li::before{background:var(--muted)}
+  .about-whats-new{background:var(--surface-2);border-radius:10px;padding:16px 18px;border-left:3px solid var(--signal);margin-top:4px}
+  .about-whats-new h3{margin-bottom:10px}
   .cl-date{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:2px}
   .cl-skill-tag{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:var(--muted);border-radius:4px;padding:1px 5px;margin:0 3px;vertical-align:middle}
   .about-skill-ver{font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400;margin-left:6px}
