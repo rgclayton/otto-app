@@ -21,6 +21,9 @@
   var fileHandle = null;                     // bound FileSystemFileHandle when linked
   var fsSupported = !!(window.showOpenFilePicker && window.indexedDB);
   var EXPECTED_SKILL_VERSION = "v15";   // bump this whenever otto-scan/SKILL.md version changes
+  var searchOpen = false;      // true while the search view is active
+  var searchQuery = "";        // current query string (cleared on close)
+  var searchPrevView = "today"; // view to restore when closing search
   function idb(mode,fn){
     return new Promise(function(res,rej){
       var op=indexedDB.open("otto-fs",1);
@@ -792,7 +795,7 @@
     persist(); renderAll(); toastUndo("Approved "+n+(n===1?" item":" items"),function(){ restoreSnapshot(snap); });
   }
   function renderAll(){
-    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders(); updateTitle(); updateSyncAge(); showSkillUpdateBar(); updateAboutSkillVer();
+    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders(); updateTitle(); updateSyncAge(); showSkillUpdateBar(); updateAboutSkillVer(); renderSearch();
     var aab=document.getElementById("approveAllBtn"); if(aab) aab.style.display=state.pending&&state.pending.length?"":"none";
   }
   function renderStats(){
@@ -934,6 +937,45 @@
     if(e.target.closest("[data-file]")){ setMeetingFiled(card.getAttribute("data-id"),true); return; }
     if(e.target.closest("[data-unfile]")){ setMeetingFiled(card.getAttribute("data-id"),false); return; }
   });
+  // search results — consolidated delegated handler for all card types
+  (function(){
+    var sr=document.getElementById("search-results");
+    sr.addEventListener("click",function(e){
+      var card=e.target.closest("[data-id]"); if(!card) return;
+      var id=card.getAttribute("data-id");
+      if(e.target.closest("[data-check]")){ toggle(id); return; }
+      if(e.target.closest("[data-del]")){ del(id); return; }
+      if(e.target.closest("[data-edit]")){ openEditor(card); return; }
+      if(e.target.closest("[data-flag]")){ toggleFlag(card,id); return; }
+      if(e.target.closest("[data-snooze]")){ var sr2=card.querySelector("[data-snoozerow]"); if(sr2) sr2.hidden=!sr2.hidden; return; }
+      var sopt=e.target.closest("[data-snooze-opt]"); if(sopt){ setSnooze(id,sopt.getAttribute("data-snooze-opt")); return; }
+      if(e.target.closest("[data-wake]")){ wakeLoop(id); return; }
+      if(e.target.closest("[data-agereset]")){ var it=findAny(id); if(it){ it.created=new Date().toISOString(); persist(); renderAll(); toast("Clock reset — still on it"); } return; }
+      if(e.target.closest("[data-resolve]")){ var rr=card.querySelector("[data-resolverow]"); if(rr) rr.hidden=!rr.hidden; return; }
+      var ropt=e.target.closest("[data-resolve-opt]"); if(ropt){ resolveItem(id,ropt.getAttribute("data-resolve-opt")); return; }
+      var fsrc=e.target.closest("[data-flag-src]"); if(fsrc){ flagMissed(id,fsrc.getAttribute("data-flag-src")); return; }
+      if(e.target.closest("[data-e-cancel]")){ renderAll(); return; }
+      if(e.target.closest("[data-e-save]")){ if(card.classList.contains("loop-card")) saveLoopEditor(card,id); else saveEditor(card,id); return; }
+      if(e.target.closest("[data-approve]")){ approveItem(id); return; }
+      if(e.target.closest("[data-reject-open]")){ var rp=card.querySelector("[data-reasons]"); if(rp) rp.hidden=!rp.hidden; return; }
+      var chip=e.target.closest("[data-reason]"); if(chip){ rejectItem(id,chip.getAttribute("data-reason")); return; }
+      if(e.target.closest("[data-restore]")){ restoreItem(id); return; }
+      if(e.target.closest("[data-archive-restore]")){ restoreResolution(id); return; }
+      if(e.target.closest("[data-file]")){ setMeetingFiled(id,true); return; }
+      if(e.target.closest("[data-unfile]")){ setMeetingFiled(id,false); return; }
+    });
+    sr.addEventListener("keydown",function(e){
+      if(e.key!=="Enter"&&e.key!==" ") return;
+      var chk=e.target.closest("[data-check]"); if(!chk) return;
+      e.preventDefault();
+      var card=e.target.closest("[data-id]"); if(card) toggle(card.getAttribute("data-id"));
+    });
+    sr.addEventListener("change",function(e){
+      var mv=e.target.closest("[data-move]"); if(!mv) return;
+      var card=e.target.closest("[data-id]"); if(!card) return;
+      var t=find(card.getAttribute("data-id")); if(t){ t.bucket=mv.value; persist(); renderAll(); }
+    });
+  })();
   document.getElementById("approveAllBtn").addEventListener("click", approveAll);
   document.getElementById("resetScanBtn").addEventListener("click",function(){
     if(!window.confirm("Reset scan history?\n\nThis empties the Review queue and Rejected archive, and clears what the scan remembers — so the next scan re-imports everything as new.\n\nYour approved tasks, follow-ups, and Teams meetings are kept.")) return;
@@ -1137,6 +1179,9 @@
 
   // nav
   function switchView(name){
+    // If search was open, close it cleanly before switching
+    if(searchOpen){ searchOpen=false; searchQuery=""; var _sb=document.getElementById("searchBar"); if(_sb)_sb.hidden=true; var _si=document.getElementById("searchInput"); if(_si)_si.value=""; }
+    var sv=document.getElementById("search-view"); if(sv) sv.classList.remove("active");
     document.querySelectorAll('nav.views button').forEach(function(b){ b.setAttribute("aria-selected", b.dataset.view===name?"true":"false"); });
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove("active"); });
     document.getElementById("view-"+name).classList.add("active");
@@ -1144,6 +1189,53 @@
   document.querySelectorAll('nav.views button').forEach(function(btn){
     btn.addEventListener("click",function(){ switchView(btn.dataset.view); });
   });
+
+  // search
+  function openSearch(){
+    if(searchOpen){ var fi=document.getElementById("searchInput"); if(fi){ fi.focus(); fi.select(); } return; }
+    var active=document.querySelector(".view.active");
+    if(active&&active.id!=="search-view") searchPrevView=active.id.replace("view-","");
+    searchOpen=true;
+    var bar=document.getElementById("searchBar"); if(bar) bar.hidden=false;
+    document.querySelectorAll('nav.views button').forEach(function(b){ b.setAttribute("aria-selected","false"); });
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove("active"); });
+    var sv=document.getElementById("search-view"); if(sv) sv.classList.add("active");
+    var inp=document.getElementById("searchInput"); if(inp){ inp.value=searchQuery; inp.focus(); }
+    renderSearch();
+  }
+  function closeSearch(){
+    searchOpen=false; searchQuery="";
+    var bar=document.getElementById("searchBar"); if(bar) bar.hidden=true;
+    var inp=document.getElementById("searchInput"); if(inp) inp.value="";
+    switchView(searchPrevView);
+  }
+  function renderSearch(){
+    var sv=document.getElementById("search-view"); if(!sv||!sv.classList.contains("active")) return;
+    var el=document.getElementById("search-results"); if(!el) return;
+    var q=(searchQuery||"").trim().toLowerCase();
+    if(!q){ el.innerHTML='<div class="search-prompt">Type to search across your tasks, follow-ups, and meetings.</div>'; return; }
+    function match(fields){ return fields.some(function(f){ return f&&String(f).toLowerCase().indexOf(q)>-1; }); }
+    var mTasks=state.tasks.filter(function(t){ return match([t.title,t.note,t.area]); });
+    var mLoops=state.loops.filter(function(l){ return match([l.summary,l.who]); });
+    var mMeetings=state.meetings.filter(function(m){ return match([m.title,m.notes]); });
+    var mPending=state.pending.filter(function(p){ return match([p.kind==="task"?p.title:p.summary,p.who,p.area]); });
+    var mRejected=state.rejected.filter(function(r){ return match([r.kind==="task"?r.title:r.summary]); });
+    mTasks.sort(sortTasks);
+    mLoops.sort(function(a,b){ if(a.done!==b.done) return a.done?1:-1; if(isSnoozed(a)!==isSnoozed(b)) return isSnoozed(a)?1:-1; return 0; });
+    mMeetings.sort(function(a,b){ return String(b.date||"").localeCompare(String(a.date||"")); });
+    var total=mTasks.length+mLoops.length+mMeetings.length+mPending.length+mRejected.length;
+    if(!total){ el.innerHTML='<div class="search-empty">No results for “'+esc(searchQuery.trim())+'”</div>'; return; }
+    function sGroup(label,cardsHtml){
+      return '<div class="search-group"><div class="group-label" style="margin-bottom:10px"><span class="eyebrow">'+label+'</span><span class="line"></span></div>'+cardsHtml+'</div>';
+    }
+    var html='<p class="search-summary">'+total+' result'+(total===1?'':'s')+' for “'+esc(searchQuery.trim())+'”</p>';
+    if(mTasks.length) html+=sGroup("Tasks \xb7 "+mTasks.length, mTasks.map(function(t){return taskCard(t,false);}).join(''));
+    if(mLoops.length) html+=sGroup("Follow-ups \xb7 "+mLoops.length, mLoops.map(loopCard).join(''));
+    if(mMeetings.length) html+=sGroup("Teams \xb7 "+mMeetings.length, mMeetings.map(meetingCard).join(''));
+    if(mPending.length) html+=sGroup("Review queue \xb7 "+mPending.length, mPending.map(reviewCard).join(''));
+    if(mRejected.length) html+=sGroup("Rejected \xb7 "+mRejected.length, mRejected.map(rejectedCard).join(''));
+    el.innerHTML=html;
+  }
 
   // capacity panel
   var panel=document.getElementById("panel"), scrim=document.getElementById("scrim");
@@ -1167,6 +1259,20 @@
   document.getElementById("aboutClose").addEventListener("click",closePanels);
   document.getElementById("weeklyBtn").innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3 9h18M8 3v3M16 3v3M8 15l2.5 2.5L16 12"/></svg>';
   document.getElementById("aboutBtn").innerHTML='<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>';
+  document.getElementById("searchBtn").innerHTML='<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>';
+  document.getElementById("searchBtn").addEventListener("click",openSearch);
+  document.getElementById("searchClose").addEventListener("click",closeSearch);
+  (function(){
+    var searchDebounce;
+    document.getElementById("searchInput").addEventListener("input",function(){
+      searchQuery=this.value;
+      clearTimeout(searchDebounce);
+      searchDebounce=setTimeout(renderSearch,120);
+    });
+    document.getElementById("searchInput").addEventListener("keydown",function(e){
+      if(e.key==="Escape") closeSearch();
+    });
+  })();
 
   document.addEventListener("click",function(e){
     var g=e.target.closest("[data-collapse]"); if(!g) return;

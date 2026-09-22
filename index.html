@@ -22,6 +22,7 @@
     </div>
     <button class="theme-btn" id="aboutBtn" aria-label="About Otto" title="About Otto"></button>
     <button class="theme-btn" id="weeklyBtn" aria-label="Weekly review" title="Weekly review"></button>
+    <button class="theme-btn" id="searchBtn" aria-label="Search" title="Search"></button>
     <span class="sync-age" id="syncAge"></span>
     <button class="theme-btn" id="fileBtn" aria-label="Link data file" title="Link otto-data.json"></button>
     <button class="theme-btn" id="themeBtn" aria-label="Theme: system" title="Theme: system"></button>
@@ -36,6 +37,10 @@
       </div>
       <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill"></div></div>
     </button>
+  </div>
+  <div class="search-bar" id="searchBar" hidden>
+    <input type="search" id="searchInput" class="search-input" placeholder="Search tasks, follow-ups, meetings…" autocomplete="off" spellcheck="false">
+    <button class="search-close" id="searchClose" aria-label="Close search" title="Close search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
 </header>
 
@@ -177,6 +182,11 @@
       <div><h2>Rejected</h2><p>Nothing is deleted — rejected items live here. Restore any you want to reassess.</p></div>
     </div>
     <div id="rejected-list"></div>
+  </section>
+
+  <!-- SEARCH (not a nav tab — activated by the search button) -->
+  <section id="search-view" class="view">
+    <div id="search-results"></div>
   </section>
 </main>
 
