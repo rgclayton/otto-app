@@ -20,6 +20,7 @@
   // ---------- file link (otto-data.json via File System Access API) ----------
   var fileHandle = null;                     // bound FileSystemFileHandle when linked
   var fsSupported = !!(window.showOpenFilePicker && window.indexedDB);
+  var EXPECTED_SKILL_VERSION = "v15";   // bump this whenever otto-scan/SKILL.md version changes
   function idb(mode,fn){
     return new Promise(function(res,rej){
       var op=indexedDB.open("otto-fs",1);
@@ -757,6 +758,27 @@
     else if(mins<1440) el.textContent="synced "+Math.round(mins/60)+"h ago";
     else el.textContent="synced "+new Date(lr).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
   }
+  var skillUpdateDismissed = false;
+  function skillVersionOk(){
+    var sv=state.meta&&state.meta.skillVersion;
+    if(!sv) return true;   // no version written yet — old skill but don't nag before first run
+    return parseInt(sv.replace(/^v/,''),10) >= parseInt(EXPECTED_SKILL_VERSION.replace(/^v/,''),10);
+  }
+  function showSkillUpdateBar(){
+    var bar=document.getElementById("skillUpdateBar"); if(!bar) return;
+    var sv=state.meta&&state.meta.skillVersion;
+    if(skillUpdateDismissed || skillVersionOk()){ bar.hidden=true; return; }
+    var msg=document.getElementById("skillUpdateMsg");
+    if(msg) msg.textContent="otto-scan has been updated to "+EXPECTED_SKILL_VERSION+" (you have "+(sv||"an older version")+") — reinstall the skill in Cowork to get the latest.";
+    bar.hidden=false;
+  }
+  function updateAboutSkillVer(){
+    var el=document.getElementById("aboutSkillVer"); if(!el) return;
+    var sv=state.meta&&state.meta.skillVersion;
+    if(!sv){ el.textContent=""; return; }
+    el.textContent="(your skill: "+sv+")";
+    el.className="about-skill-ver"+(skillVersionOk()?" current":"");
+  }
   function approveAll(){
     var n=state.pending&&state.pending.length; if(!n) return;
     var snap=snapshotForUndo();
@@ -770,7 +792,7 @@
     persist(); renderAll(); toastUndo("Approved "+n+(n===1?" item":" items"),function(){ restoreSnapshot(snap); });
   }
   function renderAll(){
-    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders(); updateTitle(); updateSyncAge();
+    renderToday(); renderWeek(); renderLater(); renderLoops(); renderMeetings(); renderReview(); renderArchive(); renderRejected(); renderGauge(); renderStats(); renderName(); counts(); refreshBlurb(); showWelcome(); applyAdders(); updateTitle(); updateSyncAge(); showSkillUpdateBar(); updateAboutSkillVer();
     var aab=document.getElementById("approveAllBtn"); if(aab) aab.style.display=state.pending&&state.pending.length?"":"none";
   }
   function renderStats(){
@@ -1372,6 +1394,7 @@
   document.getElementById("reconnectBtn").addEventListener("click",function(){ if(fileHandle) refreshFromFile(); else linkFile(); });
   document.getElementById("welcomeLinkBtn").addEventListener("click",linkFile);
   document.getElementById("welcomeDismissBtn").addEventListener("click",function(){ welcomeDismissed=true; showWelcome(); });
+  document.getElementById("skillUpdateDismiss").addEventListener("click",function(){ skillUpdateDismissed=true; showSkillUpdateBar(); });
 
   // date
   function setTodayDate(){

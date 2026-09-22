@@ -49,6 +49,10 @@
   <button role="tab" aria-selected="false" data-view="archive">Archive<span class="count" id="c-archive"></span></button>
   <button role="tab" aria-selected="false" data-view="rejected">Rejected<span class="count" id="c-rejected"></span></button>
 </nav>
+<div id="skillUpdateBar" class="skill-update-bar" hidden>
+  <span id="skillUpdateMsg">otto-scan has been updated — reinstall the skill in Cowork to get the latest.</span>
+  <button id="skillUpdateDismiss">Got it</button>
+</div>
 <div id="reconnectBar" class="reconnect-bar" hidden>
   <span>Reload dropped the file permission — your data is in the linked file, not lost.</span>
   <button id="reconnectBtn">Reconnect &amp; load</button>
@@ -254,7 +258,7 @@
         <li>Triage as normal, and check the <b>capacity gauge</b> before taking on more.</li>
       </ol>
       <div class="about-callout">
-        <b>Looks broken, isn&rsquo;t:</b>
+        <b>Looks broken? It isn&rsquo;t.</b>
         <ul>
           <li><b>After reloading the page</b>, you&rsquo;ll see an amber &ldquo;Reconnect &amp; load&rdquo; bar and the sync button lit up &mdash; just click it. Your data is safe in the file; browsers drop the file link on reload by design.</li>
           <li><b>Scanned but nothing new showed up?</b> You haven&rsquo;t hit sync yet (step 2).</li>
@@ -274,7 +278,7 @@
         <li><b>Staleness nudges</b> &mdash; items you&rsquo;ve sat on get flagged, and clicking the tag resets the clock.</li>
         <li><b>Snooze</b> &mdash; push a follow-up out to tomorrow, a few days, or next week.</li>
         <li><b>Resolution &amp; Archive</b> &mdash; close things as done, reassigned, or dropped; nothing is ever deleted.</li>
-        <li><b>Weekly review</b> &mdash; a step-back on what closed, what&rsquo;s aging, and the week&rsquo;s meeting load.</li>
+        <li><b>Weekly review</b> &mdash; a step back on what closed, what&rsquo;s aging, and the week&rsquo;s meeting load.</li>
       </ul>
     </section>
 
@@ -296,6 +300,17 @@
         <li>Deferred isn&rsquo;t forgotten &mdash; <b>Later</b> and snoozed items are exempt from staleness.</li>
         <li>Nothing is ever deleted &mdash; rejected and resolved items stay searchable in case they boomerang back.</li>
       </ul>
+    </section>
+
+    <section class="about-sec about-whats-new">
+      <h3>What&rsquo;s new <span class="about-skill-ver" id="aboutSkillVer"></span></h3>
+      <ul class="about-list about-changelog">
+        <li><b>v14</b> <span class="cl-skill-tag">skill</span> <span class="cl-date">Sep 17</span> &mdash; Fixed field names rendering as &ldquo;undefined&rdquo; after long sessions; added JSON examples as a context-loss guard.</li>
+        <li><b>v13</b> <span class="cl-skill-tag">skill</span> <span class="cl-date">Sep 4</span> &mdash; Teams transcript step is now mandatory; finish-check requires a stated attempt count so silent skips can&rsquo;t pass.</li>
+        <li><b>v12</b> <span class="cl-skill-tag">skill</span> <span class="cl-date">Aug 7</span> &mdash; Meeting hours now count busy <em>or</em> tentative calendar events, not just accepted ones.</li>
+        <li><b>v11</b> <span class="cl-skill-tag">skill</span> <span class="cl-date">Jul 22</span> &mdash; Auto-detects your display name from M365/Slack on first run; never overwrites a name you&rsquo;ve set.</li>
+      </ul>
+      <p class="about-fine">When otto-scan updates, delete and re-upload the skill in Cowork &mdash; installs don&rsquo;t update in place.</p>
     </section>
 
   </div>
