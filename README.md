@@ -47,6 +47,8 @@ Then open `http://localhost:8000/` (index.html loads automatically).
   `otto-scan/SKILL.md` each time Otto opens. Keep its version header and
   changelog entries in the existing format; if the file can't be loaded,
   About will say that version checking is unavailable.
+- Keep `.nojekyll` at the repository root: GitHub Pages otherwise converts
+  `otto-scan/SKILL.md` to `SKILL.html`, breaking the About panel's fetch.
 
 ## Your data stays out of the repo
 

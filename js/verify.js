@@ -48,6 +48,25 @@ tabs.forEach(v => { if (!sections.has(v)) { fail(`nav tab data-view="${v}" has n
 [...sections].forEach(s => { if (!tabs.includes(s)) { fail(`<section id="view-${s}"> has no nav tab`); navProblem = true; } });
 if (!navProblem) pass(`all ${tabs.length} tabs map to a view section`);
 
+// ---- 3b. GitHub Pages must serve the skill Markdown without Jekyll conversion ----
+if (js.includes('fetch("otto-scan/SKILL.md"')) {
+  const root = path.dirname(file);
+  const skillPath = path.join(root, "otto-scan", "SKILL.md");
+  fs.existsSync(path.join(root, ".nojekyll"))
+    ? pass("GitHub Pages serves the raw skill Markdown")
+    : fail(".nojekyll is missing — GitHub Pages converts SKILL.md to SKILL.html");
+  if (!fs.existsSync(skillPath)) {
+    fail("otto-scan/SKILL.md is missing");
+  } else {
+    const skill = fs.readFileSync(skillPath, "utf8");
+    const version = skill.match(/<!--\s*SKILL VERSION:\s*(v\d+)/);
+    const firstEntry = skill.match(/^\s*(v\d+)\s+\d{4}-\d{2}-\d{2}\s+—\s+/m);
+    version && firstEntry && version[1] === firstEntry[1]
+      ? pass("skill version matches its latest changelog entry")
+      : fail("skill version header and latest changelog entry do not match");
+  }
+}
+
 // ---- 4. every render* function is invoked in renderAll ----
 const renderFns = [...new Set([...js.matchAll(/function\s+(render[A-Z]\w*)\s*\(/g)].map(m => m[1]))].filter(f => f !== "renderAll");
 const renderAllBody = (js.match(/function\s+renderAll\s*\([^)]*\)\s*\{([\s\S]*?)\n\s{2}\}/) || [])[1] || "";
