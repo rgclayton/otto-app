@@ -52,3 +52,10 @@ otto-data.json        NEVER in this repo — the user's real tasks/loops/calenda
    *what gets captured* (→ `otto-scan/SKILL.md`) or *how Otto shows/behaves
    with what it already has* (→ `js/app.js` / `css/style.css`)? Most requests
    are the latter.
+
+6. **Test locally and on GitHub Pages.** Run the relevant checks and exercise
+   the change at `http://localhost:8000/`, then check its production URL and
+   dependencies on GitHub Pages. Before merge, probe the current deployment
+   for hosting differences; after merge and the Pages rebuild, verify the
+   updated behavior in production. Do not claim production verification
+   before the new deployment is live.

@@ -20,7 +20,7 @@
   // ---------- file link (otto-data.json via File System Access API) ----------
   var fileHandle = null;                     // bound FileSystemFileHandle when linked
   var fsSupported = !!(window.showOpenFilePicker && window.indexedDB);
-  var EXPECTED_SKILL_VERSION = "v15";   // bump this whenever otto-scan/SKILL.md version changes
+  var expectedSkillVersion = null;
   var searchOpen = false;      // true while the search view is active
   var searchQuery = "";        // current query string (cleared on close)
   var searchPrevView = "today"; // view to restore when closing search
@@ -764,15 +764,16 @@
   var skillUpdateDismissed = false;
   function skillVersionOk(){
     var sv=state.meta&&state.meta.skillVersion;
-    if(!sv) return true;   // no version written yet — old skill but don't nag before first run
-    return parseInt(sv.replace(/^v/,''),10) >= parseInt(EXPECTED_SKILL_VERSION.replace(/^v/,''),10);
+    if(!expectedSkillVersion) return false;
+    if(!sv) return true;
+    return parseInt(sv.replace(/^v/,''),10) >= parseInt(expectedSkillVersion.replace(/^v/,''),10);
   }
   function showSkillUpdateBar(){
     var bar=document.getElementById("skillUpdateBar"); if(!bar) return;
     var sv=state.meta&&state.meta.skillVersion;
-    if(skillUpdateDismissed || skillVersionOk()){ bar.hidden=true; return; }
+    if(!expectedSkillVersion || skillUpdateDismissed || skillVersionOk()){ bar.hidden=true; return; }
     var msg=document.getElementById("skillUpdateMsg");
-    if(msg) msg.textContent="otto-scan has been updated to "+EXPECTED_SKILL_VERSION+" (you have "+(sv||"an older version")+") — reinstall the skill in Cowork to get the latest.";
+    if(msg) msg.textContent="otto-scan has been updated to "+expectedSkillVersion+" (you have "+(sv||"an older version")+") — reinstall the skill in Cowork to get the latest.";
     bar.hidden=false;
   }
   function updateAboutSkillVer(){
@@ -780,7 +781,59 @@
     var sv=state.meta&&state.meta.skillVersion;
     if(!sv){ el.textContent=""; return; }
     el.textContent="(your skill: "+sv+")";
-    el.className="about-skill-ver"+(skillVersionOk()?" current":"");
+    el.className="about-skill-ver"+(expectedSkillVersion&&skillVersionOk()?" current":"");
+  }
+  function populateSkillChangelog(text){
+    var versionMatch=text.match(/<!--\s*SKILL VERSION:\s*(v\d+)\s*[·—]\s*\d{4}-\d{2}-\d{2}\s*\n([\s\S]*?)-->/);
+    if(!versionMatch) throw new Error("Skill version header is missing or malformed");
+    var entries=[];
+    var entryPattern=/^\s*(v\d+)\s+(\d{4}-\d{2}-\d{2})\s+—\s+(.+?)\s*$/gm;
+    var match;
+    while((match=entryPattern.exec(versionMatch[2]))!==null){
+      entries.push({version:match[1],date:match[2],summary:match[3]});
+    }
+    if(!entries.length || entries[0].version!==versionMatch[1]){
+      throw new Error("Skill changelog does not match its version header");
+    }
+    expectedSkillVersion=versionMatch[1];
+    var list=document.querySelector(".about-changelog");
+    var monthNames=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    list.replaceChildren();
+    entries.slice(0,4).forEach(function(entry){
+      var dateParts=entry.date.split("-");
+      var li=document.createElement("li");
+      var version=document.createElement("b");
+      version.textContent=entry.version;
+      li.appendChild(version);
+      li.appendChild(document.createTextNode(" "));
+      var tag=document.createElement("span");
+      tag.className="cl-skill-tag";
+      tag.textContent="skill";
+      li.appendChild(tag);
+      li.appendChild(document.createTextNode(" "));
+      var date=document.createElement("span");
+      date.className="cl-date";
+      date.textContent=monthNames[Number(dateParts[1])-1]+" "+Number(dateParts[2]);
+      li.appendChild(date);
+      li.appendChild(document.createTextNode(" — "+entry.summary));
+      list.appendChild(li);
+    });
+    var status=document.getElementById("aboutChangelogStatus");
+    status.textContent="";
+    status.hidden=true;
+    showSkillUpdateBar();
+    updateAboutSkillVer();
+  }
+  async function loadSkillChangelog(){
+    var status=document.getElementById("aboutChangelogStatus");
+    try{
+      var response=await fetch("otto-scan/SKILL.md",{cache:"no-cache"});
+      if(!response.ok) throw new Error("Skill changelog request failed: "+response.status);
+      populateSkillChangelog(await response.text());
+    }catch(error){
+      status.textContent="Couldn't load the skill changelog, so Otto can't verify the installed skill version.";
+      console.error("Otto couldn't load otto-scan/SKILL.md:",error);
+    }
   }
   function approveAll(){
     var n=state.pending&&state.pending.length; if(!n) return;
@@ -1520,6 +1573,7 @@
     "Data lives in this browser by default. Link otto-data.json (top-right) to share it with the Cowork scan — that's what feeds the Review queue and your meeting hours. Task sizes count as S=1h / M=2h / L=4h against your day.";
 
   // ---------- boot ----------
+  loadSkillChangelog();
   (async function boot(){
     // 1) try a previously-linked file
     if(fsSupported){

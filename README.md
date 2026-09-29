@@ -43,6 +43,12 @@ Then open `http://localhost:8000/` (index.html loads automatically).
 **A couple of things worth knowing:**
 - After pushing an update, your own browser (or a coworker's) may show a cached
   older version for a bit. A hard refresh (Cmd/Ctrl+Shift+R) forces the latest.
+- The About panel loads the skill changelog and expected skill version from
+  `otto-scan/SKILL.md` each time Otto opens. Keep its version header and
+  changelog entries in the existing format; if the file can't be loaded,
+  About will say that version checking is unavailable.
+- Keep `.nojekyll` at the repository root: GitHub Pages otherwise converts
+  `otto-scan/SKILL.md` to `SKILL.html`, breaking the About panel's fetch.
 
 ## Your data stays out of the repo
 
@@ -63,6 +69,12 @@ node js/verify.js index.html
 The second one is a structural checker specific to this app — it catches
 wiring bugs that syntax checking alone misses (a rendered view with no event
 handler, a tab with no matching section, etc.).
+
+For app changes, test the relevant behavior locally at `http://localhost:8000/`
+and check its production URL and dependencies on GitHub Pages. Before merge,
+probe the current deployment for differences in hosting behavior; after merge
+and the Pages rebuild, verify the updated behavior on the hosted site. A local
+pass alone does not confirm production behavior.
 
 ## Updating the `otto-scan` skill
 
