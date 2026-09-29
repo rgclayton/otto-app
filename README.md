@@ -70,6 +70,12 @@ The second one is a structural checker specific to this app — it catches
 wiring bugs that syntax checking alone misses (a rendered view with no event
 handler, a tab with no matching section, etc.).
 
+For app changes, test the relevant behavior locally at `http://localhost:8000/`
+and check its production URL and dependencies on GitHub Pages. Before merge,
+probe the current deployment for differences in hosting behavior; after merge
+and the Pages rebuild, verify the updated behavior on the hosted site. A local
+pass alone does not confirm production behavior.
+
 ## Updating the `otto-scan` skill
 
 Skill installs in Cowork don't reliably update in place. To roll out a new
