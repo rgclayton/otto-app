@@ -43,6 +43,10 @@ Then open `http://localhost:8000/` (index.html loads automatically).
 **A couple of things worth knowing:**
 - After pushing an update, your own browser (or a coworker's) may show a cached
   older version for a bit. A hard refresh (Cmd/Ctrl+Shift+R) forces the latest.
+- The About panel loads the skill changelog and expected skill version from
+  `otto-scan/SKILL.md` each time Otto opens. Keep its version header and
+  changelog entries in the existing format; if the file can't be loaded,
+  About will say that version checking is unavailable.
 
 ## Your data stays out of the repo
 
